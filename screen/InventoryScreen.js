@@ -14,7 +14,6 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {TextInput, DefaultTheme} from 'react-native-paper';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import {Picker} from '@react-native-picker/picker';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -259,46 +258,58 @@ const InventoryScreen = () => {
               <Text style={styles.modalTitle}>Add New Item</Text>
 
               <TextInput
-                mode="outlined"
-                theme={customTheme}
-                label="Medicine Name *"
-                style={styles.modalInput}
-                value={newItem.name}
-                onChangeText={text => setNewItem({...newItem, name: text})}
-              />
+  mode="outlined"
+  theme={customTheme}
+  label={
+    <Text>
+      Medicine Name <Text style={{ color: 'red' }}>*</Text>
+    </Text>
+  }
+  style={styles.modalInput}
+  value={newItem.name}
+  onChangeText={text => setNewItem({ ...newItem, name: text })}
+/>
+
 
               <TextInput
                 mode="outlined"
                 theme={customTheme}
-                label="Expiry Date *"
+                label={
+                  <Text>
+                    Expires date <Text style={{ color: 'red' }}>*</Text>
+                  </Text>
+                }
                 style={styles.modalInput}
                 value={newItem.expiryDate}
                 onFocus={() => setDatePickerVisibility(true)}
               />
 
-              <TextInput
-                mode="outlined"
-                theme={customTheme}
-                label="Unit Per Pack"
-                style={styles.modalInput}
-                value={newItem.unitPerPack}
-                onChangeText={text =>
-                  setNewItem({...newItem, unitPerPack: text})
-                }
-                keyboardType="numeric"
-              />
+              <View
+                style={{flexDirection: 'row', columnGap: SCREEN_HEIGHT * 0.04}}>
+                <TextInput
+                  mode="outlined"
+                  theme={customTheme}
+                  label="Unit Per Pack"
+                  style={styles.Packinputs}
+                  value={newItem.unitPerPack}
+                  onChangeText={text =>
+                    setNewItem({...newItem, unitPerPack: text})
+                  }
+                  keyboardType="numeric"
+                />
 
-              <TextInput
-                mode="outlined"
-                theme={customTheme}
-                label="Number of Packs"
-                style={styles.modalInput}
-                value={newItem.numberOfPacks}
-                onChangeText={text =>
-                  setNewItem({...newItem, numberOfPacks: text})
-                }
-                keyboardType="numeric"
-              />
+                <TextInput
+                  mode="outlined"
+                  theme={customTheme}
+                  label="Number of Packs"
+                  style={styles.Packinputs}
+                  value={newItem.numberOfPacks}
+                  onChangeText={text =>
+                    setNewItem({...newItem, numberOfPacks: text})
+                  }
+                  keyboardType="numeric"
+                />
+              </View>
 
               <TextInput
                 mode="outlined"
@@ -332,11 +343,13 @@ const InventoryScreen = () => {
                 keyboardType="numeric"
               />
 
-              <Text
-                onPress={() => setIsModalOpen(true)}
-                style={styles.inputLabel}>
-                Category *
-              </Text>
+              <TouchableOpacity>
+                <Text
+                  onPress={() => setIsModalOpen(true)}
+                  style={styles.inputLabel}>
+                  Category <Text style={{color: 'red'}}>*</Text>
+                </Text>
+              </TouchableOpacity>
 
               <View style={{}}>
                 {selectedCategory.type === 'Others' && (
@@ -400,21 +413,32 @@ const InventoryScreen = () => {
 
                           padding: 20,
                         }}>
-                        <FlatList
-                          data={categories}
-                          keyExtractor={item => item.value}
-                          renderItem={({item}) => (
-                            <TouchableOpacity
-                              style={{
-                                padding: 15,
-                              }}
-                              onPress={() => handleSelect(item.value)}>
-                              <Text style={{fontSize: 14, color: '#000'}}>
-                                {item.label}
-                              </Text>
-                            </TouchableOpacity>
-                          )}
-                        />
+                     <FlatList
+  data={categories}
+  keyExtractor={(item) => item.value}
+  renderItem={({ item }) => (
+    <TouchableOpacity
+      style={{
+        padding: 15,
+      }}
+      onPress={() => handleSelect(item.value)}
+    >
+      <Text style={{ fontSize: 14, color: '#000' }}>
+        {item.label}
+      </Text>
+    </TouchableOpacity>
+  )}
+  ItemSeparatorComponent={() => (
+    <View
+      style={{
+        height: SCREEN_HEIGHT*0.001,
+        backgroundColor: '#000', // Line color
+        marginHorizontal: 15, // Optional margin for line
+      }}
+    />
+  )}
+/>
+
                         <TouchableOpacity
                           style={{
                             marginTop: 10,
@@ -448,7 +472,11 @@ const InventoryScreen = () => {
                 <TextInput
                   mode="outlined"
                   theme={customTheme}
-                  label="Batch Expiry *"
+                  label={
+                    <Text>
+                      Batch Date  <Text style={{ color: 'red' }}>*</Text>
+                    </Text>
+                  }
                   style={styles.modalInput}
                   value={newItem.batchExpiry}
                   onFocus={() => setisDatePickerExpiryVisible(true)}
@@ -586,6 +614,7 @@ const styles = StyleSheet.create({
   itemInfo: {
     fontSize: 14,
     marginBottom: 5,
+    color:"#000"
   },
   stockControls: {
     flexDirection: 'row',
@@ -632,6 +661,11 @@ const styles = StyleSheet.create({
   },
   modalInput: {
     marginBottom: 15,
+  },
+  Packinputs: {
+    marginBottom: 15,
+
+    width: SCREEN_HEIGHT * 0.17,
   },
   inputLabel: {
     fontSize: 14,

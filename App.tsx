@@ -22,6 +22,7 @@ import VerifyOtp from './Auth/VerifyOtp';
 import AddNewStore from './screen/AddNewStore';
 import OnBoarding from './screen/OnBoarding';
 import SearchScreen from './screen/SearchScreen';
+import AddProduct from './screen/AddProduct';
 
 // Custom Drawer Content
 const CustomDrawerContent = (props) => (
@@ -137,6 +138,11 @@ const App = () => {
             <Stack.Screen 
               name="SearchScreen" 
               component={SearchScreen} 
+              options={{ headerShown: true, title: 'Search Product to add', headerTitleStyle: { fontSize: 15 } }}
+            />
+            <Stack.Screen 
+              name="AddProduct" 
+              component={AddProduct} 
               options={{ headerShown: true, title: 'Search Product to add', headerTitleStyle: { fontSize: 15 } }}
             />
           </Stack.Navigator>

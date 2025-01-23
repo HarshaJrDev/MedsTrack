@@ -168,7 +168,7 @@ const SearchScreen = () => {
               source={require('../assets/Nodata.png')}
               style={{height: 100, width: 100}}
             />
-            <Text style={styles.noSuggestionsText}>not available.</Text>
+            <Text style={styles.noSuggestionsText}>Not available.</Text>
             <TouchableOpacity
               style={styles.addButton}
               onPress={() => handleSelectSuggestion(storeName)}>
@@ -185,9 +185,9 @@ const SearchScreen = () => {
                 borderRadius: 10,
               }}
               colors={['#4756ca', '#616dc7']}>
-              <TouchableOpacity onPress={()=>navigation.navigate('Inventory')}
+              <TouchableOpacity onPress={()=>navigation.navigate('AddProduct')}
                 style={{justifyContent: 'center', alignItems: 'center'}}>
-                <Text style={styles.addButtonText}>Add Item</Text>
+                <Text style={styles.addButtonText}>Add Product</Text>
               </TouchableOpacity>
             </LinearGradient>
           </View>
