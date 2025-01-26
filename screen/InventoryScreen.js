@@ -406,7 +406,7 @@ const InventoryScreen = () => {
                     }}>
                     <LinearGradient
                       style={{borderRadius: 10}}
-                      colors={['#4756ca', '#616dc7']}>
+                      colors={['#4756ca', '#4756ca']}>
                       <View
                         style={{
                           width: '80%',
@@ -423,7 +423,7 @@ const InventoryScreen = () => {
       }}
       onPress={() => handleSelect(item.value)}
     >
-      <Text style={{ fontSize: 14, color: '#000' }}>
+      <Text style={{ fontSize: 14, color: '#fff' }}>
         {item.label}
       </Text>
     </TouchableOpacity>
@@ -432,18 +432,17 @@ const InventoryScreen = () => {
     <View
       style={{
         height: SCREEN_HEIGHT*0.001,
-        backgroundColor: '#000', // Line color
+        backgroundColor: '#fff', // Line color
         marginHorizontal: 15, // Optional margin for line
       }}
     />
   )}
 />
-
                         <TouchableOpacity
                           style={{
                             marginTop: 10,
                             padding: 15,
-                            backgroundColor: '#000',
+                            backgroundColor: '#3f4fb8',
                             borderRadius: 5,
                             alignItems: 'center',
                           }}
@@ -602,6 +601,7 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 18,
     fontWeight: 'bold',
+
   },
   stockIndicator: {
     width: 15,

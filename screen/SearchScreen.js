@@ -187,7 +187,7 @@ const SearchScreen = () => {
               colors={['#4756ca', '#616dc7']}>
               <TouchableOpacity onPress={()=>navigation.navigate('AddProduct')}
                 style={{justifyContent: 'center', alignItems: 'center'}}>
-                <Text style={styles.addButtonText}>Add Product</Text>
+                <Text style={[styles.addButtonText,{color:"#fff"}]}>Add Product</Text>
               </TouchableOpacity>
             </LinearGradient>
           </View>

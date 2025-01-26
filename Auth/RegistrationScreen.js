@@ -19,59 +19,147 @@ import Toast from 'react-native-toast-message';
 import * as Reanimatable from 'react-native-animatable';
 import 'react-native-gesture-handler';
 import LottieView from 'lottie-react-native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const RegistrationScreen = () => {
   const navigation = useNavigation();
-    const animationRef = useRef(null);
+  const animationRef = useRef(null);
 
   const OTP_LENGTH = 6;
   const [confirmpassword, setconfirmpassword] = useState();
-
   const [isActivepassword, setisActivepassword] = useState(false);
   const [selectedOption, setSelectedOption] = useState('phone');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isActiveOpt, setisActiveopt] = useState(false);
   const [isActiveemail, setisActiveemail] = useState(false);
   const [isActiveConfirmPassword, setisActiveConfirmPassword] = useState(false);
-
-  const [isActive, setisActive] = useState(false);
+  const [username, setusername] = useState('');
+  const [isusernameactive, setisusernameactive] = useState('');
+  const [firstName, setfirstName] = useState('');
+  const [lastName, setlastName] = useState('');
   const [otpInputs, setOtpInputs] = useState(Array(OTP_LENGTH).fill(''));
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isvisiable, setisvisiable] = useState(false);
   const [timer, setTimer] = useState(30);
+  const [isactivefirstname, setisactivefirstname] = useState('');
+  const [isactivelastname, setisactivelastname] = useState('');
+  const [fullName, setfullName] = useState('');
+  const [isactivefullname, setisactivefullname] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const inputRefs = useRef([]);
 
+  const [errorMessage, setErrorMessage] = useState('');
 
+  const validateUsername = text => {
+    // Regular expression for validation
+    const usernameRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    useEffect(() => {
-  
-      // Or set a specific startFrame and endFrame with:
-      animationRef.current?.play(50, 220);
-    }, []);
-  
-  //   // const getchange = href.c
-  const handleLoginWithEmail = () => {
-    setisvisiable(!isvisiable);
+    if (!usernameRegex.test(text)) {
+      setErrorMessage(
+        'Username must be at least 8 characters long, include a special character, uppercase, lowercase, and a number.',
+      );
+    } else {
+      setErrorMessage('');
+    }
 
-    // Add a 3-second delay before navigation
-    setTimeout(() => {
-      navigation.replace('OnBoarding');
-    }, 1500);
+    setusername(text);
   };
-  
 
+  useEffect(() => {
+    // Or set a specific startFrame and endFrame with:
+    animationRef.current?.play(50, 220);
+  }, []);
+
+  const handleLoginWithEmail = async () => {
+    // Validate email and password
+    if (!email || !password || !confirmpassword) {
+      Toast.show({
+        type: 'error',
+        text1: 'Missing Information',
+        text2: 'All fields are required.',
+      });
+      return;
+    }
+
+    // Check if passwords match
+    if (password !== confirmpassword) {
+      Toast.show({
+        type: 'error',
+        text1: 'Password Mismatch',
+        text2: 'Please ensure both passwords are the same.',
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Email',
+        text2: 'Please enter a valid email address.',
+      });
+      return;
+    }
+
+    try {
+      console.log('Sending login request...');
+      const response = await axios.post(
+        'https://britepharma-dev.bliptyn.com/api/v1/auth/register',
+        {
+          email: email.trim(),
+          password: password,
+          firstName: firstName,
+          lastName: lastName,
+        },
+      );
+
+      console.log('API Response:', response);
+
+      if (response.status === 200) {
+        console.log('Login successful');
+        Toast.show({
+          type: 'success',
+          text1: 'Login Successful',
+          text2: 'Welcome to the app!',
+        });
+
+        console.log('Navigating to OnBoarding...');
+        navigation.navigate('OnBoarding');
+      } else {
+        console.log('Login failed with status:', response.status);
+        Alert.alert(
+          'Registration Failed',
+          'An error occurred. Please try again.',
+        );
+      }
+    } catch (error) {
+      console.error(
+        'Error during login:',
+        error.response?.data || error.message,
+      );
+      Alert.alert('Error', 'Something went wrong. Please try again later.');
+    } finally {
+      console.log('Resetting visibility...');
+      setisvisiable(!isvisiable);
+
+      setTimeout(() => {
+        console.log('Replacing navigation...');
+        navigation.replace('OnBoarding');
+      }, 100);
+    }
+  };
 
   useEffect(() => {
     let interval;
     if (isTimerActive) {
       interval = setInterval(() => {
-        setTimer((prevTimer) => {
+        setTimer(prevTimer => {
           if (prevTimer <= 1) {
             clearInterval(interval);
             setIsTimerActive(false);
@@ -91,9 +179,8 @@ const RegistrationScreen = () => {
     setIsTimerActive(true);
     setTimer(30);
     console.log('Timer started');
-
   };
-  
+
   const showSuccessToast = () => {
     Toast.show({
       type: 'success',
@@ -101,8 +188,6 @@ const RegistrationScreen = () => {
       text2: 'The OTP has been sent successfully.',
     });
   };
-  
-
 
   const handleInputChange = (text, index) => {
     const digits = text.split('');
@@ -131,39 +216,131 @@ const RegistrationScreen = () => {
   };
   useEffect(() => {}, [navigation]);
 
-  const handleVerify = () => {
-    const otp = otpInputs.join('');
-    console.log('Entered OTP:', otp);
+  const handleVerify = async () => {
+    if (!email || !password || !confirmpassword) {
+      Toast.show({
+        type: 'error',
+        text1: 'Missing Information',
+        text2: 'All fields are required.',
+      });
+      return;
+    }
+    if (password !== confirmpassword) {
+      Toast.show({
+        type: 'error',
+        text1: 'Password Mismatch',
+        text2: 'Please ensure both passwords are the same.',
+      });
+      return;
+    }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Email',
+        text2: 'Please enter a valid email address.',
+      });
+      return;
+    }
 
-    setisvisiable(!isvisiable);
+    try {
+      console.log('Sending registration request...');
+      const response = await axios.post(
+        'https://britepharma-dev.bliptyn.com/api/v1/auth/register',
+        {
+          firstName: firstName,
+          lastName: lastName,
+          email: email.trim(),
+          password: password,
+          fullName: fullName,
+          username: username,
+        },
+      );
 
+      console.log('API Response:', response.data);
 
-    setTimeout(() => {
-      navigation.replace('OnBoarding');
-    }, 2000);
+      if (response.status === 200) {
+        // Persist user data to AsyncStorage
+        const userData = {
+          firstName: firstName,
+          lastName: lastName,
+          email: email.trim(),
+          password: password,
+          fullName: fullName,
+          username: username,
+        };
+
+        await AsyncStorage.setItem('userData', JSON.stringify(userData));
+
+        Toast.show({
+          type: 'success',
+          text1: 'Registration Successful',
+          text2: 'Welcome to the app!',
+        });
+
+        console.log('Navigating to OnBoarding...');
+        setisvisiable(!isvisiable);
+        navigation.navigate('OnBoarding');
+      } else {
+        console.log('Registration failed with status:', response.status);
+        Alert.alert(
+          'Registration Failed',
+          'An error occurred. Please try again.',
+        );
+      }
+    } catch (error) {
+      console.error(
+        'Error during registration:',
+        error.response?.data || error.message,
+      );
+
+      const errorMessage =
+        error.response?.data?.message ||
+        'Something went wrong. Please try again later.';
+      Alert.alert('Error', errorMessage);
+    } finally {
+      console.log('Resetting visibility...');
+      setisvisiable(!isvisiable);
+
+      setTimeout(() => {
+        console.log('Replacing navigation...');
+        navigation.replace('OnBoarding');
+      }, 100);
+    }
   };
+
+  const validatePassword = text => {
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(text)) {
+      setPasswordError(
+        'Password must be at least 8 characters, include a special character, uppercase, lowercase, and a number.',
+      );
+    } else {
+      setPasswordError('');
+    }
+    setPassword(text);
+  };
+
   const toastConfig = {
-    custom_success: ({ text1, text2, ...rest }) => (
+    custom_success: ({text1, text2, ...rest}) => (
       <LinearGradient
         colors={['#4756ca', '#616dc7']}
-        style={{height:20,width:20}}
-      >
+        style={{height: 20, width: 20}}>
         <Text style={styles.toastText1}>{text1}</Text>
         <Text style={styles.toastText2}>{text2}</Text>
       </LinearGradient>
     ),
   };
-
-
   return (
     <Reanimatable.View
       animation="fadeIn"
       duration={500}
       style={styles.MainContainer}>
       <KeyboardAvoidingView
-        style={styles.MainContainer}
-        behavior={Platform.OS === 'android' ? 'padding' : undefined}>
+        behavior={Platform.OS === 'android' ? 'height' : undefined}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}>
@@ -187,7 +364,8 @@ const RegistrationScreen = () => {
                   Already have an account?
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('LoginScreen')}>
                 <LinearGradient
                   colors={['#AAB3E580', '#AAB3E580']}
                   style={styles.Box}>
@@ -202,8 +380,8 @@ const RegistrationScreen = () => {
                 </LinearGradient>
               </TouchableOpacity>
             </View>
-            <View style={{bottom:SCREEN_HEIGHT*0.02}}>
-            <Toast config={toastConfig} />
+            <View style={{bottom: SCREEN_HEIGHT * 0.02}}>
+              <Toast config={toastConfig} />
             </View>
             <View style={styles.CompanyTittleContainer}>
               <Text style={styles.CompanyTittle}>MedsTrack</Text>
@@ -214,44 +392,42 @@ const RegistrationScreen = () => {
                 />
               </View>
             </View>
-
-              <Modal
-                          animationType="slide"
-                          transparent={true}
-                          visible={isvisiable}>
-                          <View
-                            style={{
-                              flex: 1,
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                            }}>
-                            <View
-                              style={{
-                                height: 200,
-                                width: 200,
-                                backgroundColor: '#4a5556',
-                                borderRadius: 10,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}>
-                              <LottieView
-                                ref={animationRef}
-                                autoPlay
-                                loop
-                                style={{height: 150, width: 150}}
-                                source={require('../assets/Sucessfull.json')}
-                  
-                              />
-                            </View>
-                          </View>
-                        </Modal>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isvisiable}>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                }}>
+                <View
+                  style={{
+                    height: 200,
+                    width: 200,
+                    backgroundColor: '#4a5556',
+                    borderRadius: 10,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <LottieView
+                    ref={animationRef}
+                    autoPlay
+                    loop
+                    style={{height: 150, width: 150}}
+                    source={require('../assets/Sucessfull.json')}
+                  />
+                </View>
+              </View>
+            </Modal>
 
             <LinearGradient
               colors={['#AAB3E5', '#4752ca']}
               style={styles.LowerContainer}></LinearGradient>
 
-            <View style={styles.UpperContainer}>
+            <View style={[styles.UpperContainer,{marginTop:-SCREEN_HEIGHT*0.03}]}>
               <View
                 style={{
                   justifyContent: 'center',
@@ -276,8 +452,6 @@ const RegistrationScreen = () => {
                 </Text>
               </View>
 
-              
-
               {selectedOption === 'phone' ? (
                 <>
                   <View
@@ -285,6 +459,82 @@ const RegistrationScreen = () => {
                       marginBottom: SCREEN_HEIGHT * 0.05,
                       top: SCREEN_HEIGHT * 0.05,
                     }}>
+                    <TextInput
+                      onBlur={() => setisusernameactive(false)}
+                      onFocus={() => setisusernameactive(true)}
+                      style={[
+                        styles.Whiteinput,
+                        {
+                          borderColor: isusernameactive ? '#4752ca' : '#fff',
+                        },
+                        {bottom: SCREEN_HEIGHT * 0.03},
+                      ]}
+                      placeholder="User name"
+                      value={username}
+                      onChangeText={validateUsername}
+                      placeholderTextColor="#000"
+                      keyboardType="default"
+                    />
+                    {errorMessage ? (
+                      <Text
+                        style={{
+                          color: 'red',
+                          fontSize: 12,
+                          bottom: SCREEN_HEIGHT * 0.045,
+                          left: SCREEN_HEIGHT * 0.02,
+                        }}>
+                        {errorMessage}
+                      </Text>
+                    ) : null}
+
+                    <TextInput
+                      onBlur={() => setisactivefirstname(false)}
+                      onFocus={() => setisactivefirstname(true)}
+                      style={[
+                        styles.Whiteinput,
+                        {
+                          borderColor: isactivefirstname ? '#4752ca' : '#fff',
+                        },
+                        {bottom: SCREEN_HEIGHT * 0.03},
+                      ]}
+                      placeholder="First Name"
+                      value={firstName}
+                      onChangeText={setfirstName}
+                      placeholderTextColor="#000"
+                      keyboardType="default"
+                    />
+                    <TextInput
+                      onBlur={() => setisactivelastname(false)}
+                      onFocus={() => setisactivelastname(true)}
+                      style={[
+                        styles.Whiteinput,
+                        {
+                          borderColor: isactivelastname ? '#4752ca' : '#fff',
+                        },
+                        {bottom: SCREEN_HEIGHT * 0.03},
+                      ]}
+                      placeholder="Last Name"
+                      value={lastName}
+                      onChangeText={setlastName}
+                      placeholderTextColor="#000"
+                      keyboardType="default"
+                    />
+                    <TextInput
+                      onBlur={() => setisactivefullname(false)}
+                      onFocus={() => setisactivefullname(true)}
+                      style={[
+                        styles.Whiteinput,
+                        {
+                          borderColor: isactivefullname ? '#4752ca' : '#fff',
+                        },
+                        {bottom: SCREEN_HEIGHT * 0.03},
+                      ]}
+                      placeholder="Full name"
+                      value={fullName}
+                      onChangeText={setfullName}
+                      placeholderTextColor="#000"
+                      keyboardType="default"
+                    />
                     <TextInput
                       onBlur={() => setisActiveemail(false)}
                       onFocus={() => setisActiveemail(true)}
@@ -297,19 +547,35 @@ const RegistrationScreen = () => {
                       onChangeText={setEmail}
                       placeholderTextColor="#000"
                     />
+
+                    {/* Password Input */}
                     <TextInput
                       onBlur={() => setisActivepassword(false)}
                       onFocus={() => setisActivepassword(true)}
                       style={[
                         styles.Whiteinput,
-                        {borderColor: isActivepassword ? '#4752ca' : '#fff'},
+                        {
+                          borderColor: isActivepassword ? '#4752ca' : '#fff',
+                        },
                       ]}
                       placeholder="Enter Password"
                       value={password}
-                      onChangeText={text => setPassword(text)}
+                      onChangeText={validatePassword}
                       placeholderTextColor="#000"
+                      secureTextEntry
                       keyboardType="default"
                     />
+                    {passwordError ? (
+         <Text
+         style={{
+           color: 'red',
+           fontSize: 12,
+           bottom: SCREEN_HEIGHT * 0.045,
+           left: SCREEN_HEIGHT * 0.02,
+         }}>
+                        {passwordError}
+                      </Text>
+                    ) : null}
                     <TextInput
                       onBlur={() => setisActiveConfirmPassword(false)}
                       onFocus={() => setisActiveConfirmPassword(true)}
@@ -328,60 +594,44 @@ const RegistrationScreen = () => {
                       keyboardType="default"
                     />
                   </View>
-                  <TextInput
-                    onBlur={() => setisActive(false)}
-                    onFocus={() => setisActive(true)}
-                    style={[
-                      styles.Whiteinput,
-                      {
-                        borderColor: isActive ? '#4752ca' : '#fff',
-                      },
-                      {bottom: SCREEN_HEIGHT * 0.03},
-                    ]}
-                    placeholder="Enter Phone Number"
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                    placeholderTextColor="#000"
-                    keyboardType="phone-pad"
-                  />
-<View style={{ marginVertical: SCREEN_HEIGHT * 0.02, justifyContent: "flex-start" }}>
-  <View
-    style={{
-      flexDirection: 'row',
-      justifyContent: 'space-between', // Space between elements
-      alignItems: 'center',
-      marginHorizontal: SCREEN_WIDTH * 0.05,
-      top: -SCREEN_HEIGHT * 0.05,
-    }}
-  >
-    <TouchableOpacity
-      disabled={isTimerActive}
-      onPress={handleSendOtp}
-    >
-      <Text
-        style={{
-          fontSize: 15,
-          textAlign: 'right',
-          fontFamily: 'Nunito-Regular',
-          color: isTimerActive ? '#000' : '#000',
-        }}
-      >
-        {isOtpSent ? 'OTP Sent' : 'Send OTP'}
-      </Text>
-    </TouchableOpacity>
-    {isTimerActive && (
-      <Text
-        style={{
-          color: '#4752ca',
-          fontSize: 16,
-          fontFamily: 'Nunito-Regular',
-        }}
-      >
-        Wait {timer}s
-      </Text>
-    )}
-  </View>
-</View>
+                  <View
+                    style={{
+                      marginVertical: SCREEN_HEIGHT * 0.02,
+                      justifyContent: 'flex-start',
+                    }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginHorizontal: SCREEN_WIDTH * 0.05,
+                        top: -SCREEN_HEIGHT * 0.05,
+                      }}>
+                      <TouchableOpacity
+                        disabled={isTimerActive}
+                        onPress={handleSendOtp}>
+                        <Text
+                          style={{
+                            fontSize: 15,
+                            textAlign: 'right',
+                            fontFamily: 'Nunito-Regular',
+                            color: isTimerActive ? '#000' : '#000',
+                          }}>
+                          {isOtpSent ? 'OTP Sent' : 'Send OTP'}
+                        </Text>
+                      </TouchableOpacity>
+                      {isTimerActive && (
+                        <Text
+                          style={{
+                            color: '#4752ca',
+                            fontSize: 16,
+                            fontFamily: 'Nunito-Regular',
+                          }}>
+                          Wait {timer}s
+                        </Text>
+                      )}
+                    </View>
+                  </View>
 
                   {isOtpSent && (
                     <View
@@ -479,7 +729,7 @@ export default RegistrationScreen;
 
 const styles = StyleSheet.create({
   MainContainer: {
-    flex: 1,
+    flex:1
   },
   LowerContainer: {
     backgroundColor: '#fff',
@@ -490,13 +740,11 @@ const styles = StyleSheet.create({
     borderTopRightRadius: SCREEN_HEIGHT * 0.05,
   },
   UpperContainer: {
-    marginBottom: -SCREEN_HEIGHT * 0.05,
     borderTopLeftRadius: SCREEN_HEIGHT * 0.05,
     borderTopRightRadius: SCREEN_HEIGHT * 0.05,
     zIndex: 1,
     backgroundColor: '#fff',
-    height: SCREEN_HEIGHT * 0.8,
-    bottom: SCREEN_HEIGHT * 0.03,
+    flex:1,
   },
   CompanyTittle: {
     fontFamily: 'Nunito-Bold',

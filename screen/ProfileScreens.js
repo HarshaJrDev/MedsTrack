@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2196F3',
+    color: '#4756ca',
   },
   field: {
     marginBottom: 15,
@@ -200,11 +200,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   editButtonText: {
-    color: '#2196F3',
+    color: '#4756ca',
     fontWeight: '500',
   },
   saveButton: {
-    backgroundColor: '#51cf66',
+    backgroundColor: '#4756ca',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',

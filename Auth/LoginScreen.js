@@ -19,12 +19,15 @@ import 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import {useNavigation} from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
-
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const LoginScreen = () => {
+    const [isActivepassword, setisActivepassword] = useState(false);
+    const [isusernameactive, setisusernameactive] = useState('');
   const navigation = useNavigation();
   const animationRef = useRef(null);
   const [isvisiable, setisvisiable] = useState(false);
@@ -35,14 +38,33 @@ const LoginScreen = () => {
   const [otp, setOtp] = useState('');
   const [otpInputs, setOtpInputs] = useState(new Array(6).fill(''));
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isActiveOpt, setisActiveopt] = useState(false);
-  const [isActiveemail, setisActiveemail] = useState(false);
+  const [isActiveemail, setisActivee] = useState(false);
   const [isActive, setisActive] = useState(false);
   const [isTimerActive, setIsTimerActive] = useState(false);
+  const [username, setusername] = useState('');
   const [timer, setTimer] = useState(0);
+    const [errorMessage, setErrorMessage] = useState('');
+      const [passwordError, setPasswordError] = useState('');
   const inputRefs = useRef([]);
 
- useEffect(() => {
+
+  const validateUsername = text => {
+    // Regular expression for validation
+    const usernameRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    if (!usernameRegex.test(text)) {
+      setErrorMessage(
+        'Username must be at least 8 characters long, include a special character, uppercase, lowercase, and a number.',
+      );
+    } else {
+      setErrorMessage('');
+    }
+
+    setusername(text);
+  };
+
+  useEffect(() => {
     if (animationRef.current) {
       // Play the animation
       animationRef.current.play();
@@ -57,24 +79,120 @@ const LoginScreen = () => {
     }
   }, []);
 
-
-
-  const handleLoginWithEmail = () => {
-    setisvisiable(!isvisiable);
-    setTimeout(() => {
-      navigation.replace('OnBoarding');
-    }, 1500);
+  const validatePassword = text => {
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(text)) {
+      setPasswordError(
+        'Password must be at least 8 characters, include a special character, uppercase, lowercase, and a number.',
+      );
+    } else {
+      setPasswordError('');
+    }
+    setPassword(text);
   };
 
- const handleSendOtp = () => {
+
+  const handleLoginWithEmail =  async () => {
+    console.log('Starting handleVerify...');
+    
+    // Check for missing fields
+    if (!email || !password || !username) {
+      console.log('Missing fields:', { email, password, username });
+      Toast.show({
+        type: 'error',
+        text1: 'Missing Information',
+        text2: 'All fields are required.',
+      });
+      return;
+    }
+  
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      console.log('Invalid email format:', email.trim());
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Email',
+        text2: 'Please enter a valid email address.',
+      });
+      return;
+    }
+  
+    try {
+      console.log('Sending registration request...');
+      const response = await axios.post(
+        'https://britepharma-dev.bliptyn.com/api/v1/auth/login',
+        {
+          email: email.trim(),
+          password: password,
+          username: username,
+        }
+      );
+  
+      console.log('API Response:', response.data);
+  
+      if (response.status === 200) {
+        console.log('Registration successful:', response.data);
+  
+        const userData = {
+          email: email.trim(),
+          password: password,
+          username: username,
+        };
+  
+        console.log('Saving user data to AsyncStorage:', userData);
+        await AsyncStorage.setItem('userData', JSON.stringify(userData));
+  
+        Toast.show({
+          type: 'success',
+          text1: 'Registration Successful',
+          text2: 'Welcome to the app!',
+        });
+  
+        console.log('Navigating to AddProduct...');
+        setisvisiable(!isvisiable);
+        navigation.replace('AddProduct');
+      } else {
+        console.log('Registration failed with status:', response.status);
+        Alert.alert(
+          'Registration Failed',
+          'An error occurred. Please try again.'
+        );
+      }
+    } catch (error) {
+      console.error(
+        'Error during registration:',
+        error.response?.data || error.message
+      );
+  
+      const errorMessage =
+        error.response?.data?.message ||
+        'Something went wrong. Please try again later.';
+      Alert.alert('Error', errorMessage);
+    } finally {
+      console.log('Resetting visibility...');
+      setisvisiable(!isvisiable);
+  
+      setTimeout(() => {
+        console.log('Replacing navigation to OnBoarding...');
+        navigation.replace('OnBoarding');
+      }, 100);
+    }
+  };
+  
+
+
+
+
+  const handleSendOtp = () => {
     showSuccessToast();
     setIsOtpSent(true);
     setIsTimerActive(true);
     setTimer(30);
     console.log('Timer started');
-
   };
-  
+
   const showSuccessToast = () => {
     Toast.show({
       type: 'success',
@@ -82,7 +200,7 @@ const LoginScreen = () => {
       text2: 'The OTP has been sent successfully.',
     });
   };
-  
+
   useEffect(() => {
     let interval;
     if (isTimerActive) {
@@ -100,7 +218,6 @@ const LoginScreen = () => {
 
     return () => clearInterval(interval);
   }, [isTimerActive]);
-
 
   const handleInputChange = (text, index) => {
     const digits = text.split('');
@@ -133,14 +250,102 @@ const LoginScreen = () => {
     return () => {};
   }, []);
 
-  const handleVerify = () => {
-    setisvisiable(!isvisiable)
-    const otp = otpInputs.join('');
-    console.log('Entered OTP:', otp);
-    setTimeout(() => {
-      navigation.replace('OnBoarding');
-    }, 1500);
+  const handleVerify = async () => {
+    console.log('Starting handleVerify...');
+    
+    // Check for missing fields
+    if (!email || !password || !username) {
+      console.log('Missing fields:', { email, password, username });
+      Toast.show({
+        type: 'error',
+        text1: 'Missing Information',
+        text2: 'All fields are required.',
+      });
+      return;
+    }
+  
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      console.log('Invalid email format:', email.trim());
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Email',
+        text2: 'Please enter a valid email address.',
+      });
+      return;
+    }
+  
+    try {
+      console.log('Sending registration request...');
+      const response = await axios.post(
+        'https://britepharma-dev.bliptyn.com/api/v1/auth/login',
+        {
+          email: email.trim(),
+          password: password,
+          username: username,
+        }
+      );
+  
+      console.log('API Response:', response.data);
+  
+      if (response.status === 200) {
+        console.log('Registration successful:', response.data);
+  
+        const userData = {
+          email: email.trim(),
+          password: password,
+          username: username,
+        };
+  
+        console.log('Saving user data to AsyncStorage:', userData);
+        await AsyncStorage.setItem('userData', JSON.stringify(userData));
+  
+        Toast.show({
+          type: 'success',
+          text1: 'Registration Successful',
+          text2: 'Welcome to the app!',
+        });
+  
+        console.log('Navigating to AddProduct...');
+        setisvisiable(!isvisiable);
+        navigation.replace('AddProduct');
+      } else {
+        console.log('Registration failed with status:', response.status);
+        Alert.alert(
+          'Registration Failed',
+          'An error occurred. Please try again.'
+        );
+      }
+    } catch (error) {
+      console.error(
+        'Error during registration:',
+        error.response?.data || error.message
+      );
+  
+      const errorMessage =
+        error.response?.data?.message ||
+        'Something went wrong. Please try again later.';
+      Alert.alert('Error', errorMessage);
+    } finally {
+      console.log('Resetting visibility...');
+      setisvisiable(!isvisiable);
+  
+      setTimeout(() => {
+        console.log('Replacing navigation to OnBoarding...');
+        navigation.replace('OnBoarding');
+      }, 100);
+    }
   };
+  
+
+
+
+
+
+
+
+  
   const handleforgotpassword = () => {
     navigation.push('ForgotPassword');
   };
@@ -190,9 +395,9 @@ const LoginScreen = () => {
                 </LinearGradient>
               </TouchableOpacity>
             </View>
-             <View style={{bottom:SCREEN_HEIGHT*0.02}}>
-                        <Toast />
-                        </View>
+            <View style={{bottom: SCREEN_HEIGHT * 0.02}}>
+              <Toast />
+            </View>
             <View style={styles.CompanyTittleContainer}>
               <Text style={styles.CompanyTittle}>MedsTrack</Text>
               <View>
@@ -269,14 +474,14 @@ const LoginScreen = () => {
               </View>
               {selectedOption === 'phone' ? (
                 <>
-                  <View  >
+                  <View>
                     <TextInput
                       onBlur={() => setisActive(false)}
                       onFocus={() => setisActive(true)}
                       style={[
                         styles.Whiteinput,
-                        {borderColor: isActive ? '#4752ca' : '#fff'},{top:-SCREEN_HEIGHT*0.03}
-               
+                        {borderColor: isActive ? '#4752ca' : '#fff'},
+                        {top: -SCREEN_HEIGHT * 0.03},
                       ]}
                       placeholder="Enter Phone Number"
                       value={phoneNumber}
@@ -284,7 +489,6 @@ const LoginScreen = () => {
                       placeholderTextColor="#000"
                       keyboardType="phone-pad"
                     />
-           
                   </View>
                   {isOtpSent && (
                     <View
@@ -294,8 +498,7 @@ const LoginScreen = () => {
                         width: '100%',
                         columnGap: 17,
                         marginBottom: 20,
-                       right:SCREEN_HEIGHT*0.005
-             
+                        right: SCREEN_HEIGHT * 0.005,
                       }}>
                       {otpInputs.map((_, index) => (
                         <TextInput
@@ -321,57 +524,48 @@ const LoginScreen = () => {
                           blurOnSubmit={index === otpInputs.length - 1}
                         />
                       ))}
-
-                      
                     </View>
-                    
                   )}
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between', 
-                        alignItems: 'center',
-                        marginHorizontal: SCREEN_WIDTH * 0.05,
-                 
-                      }}
-                    >
-                      <TouchableOpacity
-                        disabled={isTimerActive}
-                        onPress={handleSendOtp}
-                      >
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginHorizontal: SCREEN_WIDTH * 0.05,
+                    }}>
+                    <TouchableOpacity
+                      disabled={isTimerActive}
+                      onPress={handleSendOtp}>
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          textAlign: 'right',
+                          fontFamily: 'Nunito-Regular',
+                          color: isTimerActive ? '#000' : '#000',
+                        }}>
+                        {isOtpSent ? '' : ''}
+                      </Text>
+                    </TouchableOpacity>
+                    {isTimerActive && (
+                      <View style={{bottom: SCREEN_HEIGHT * 0.01}}>
                         <Text
-                          style={{
-                            fontSize: 15,
-                            textAlign: 'right',
-                            fontFamily: 'Nunito-Regular',
-                            color: isTimerActive ? '#000' : '#000',
-                          }}
-                        >
-                          {isOtpSent ? '' : ''}
-                        </Text>
-                      </TouchableOpacity>
-                      {isTimerActive && (
-                        <View style={{bottom:SCREEN_HEIGHT*0.01}} >
-                           <Text
                           style={{
                             color: '#4752ca',
                             fontSize: 16,
                             fontFamily: 'Nunito-Regular',
-
-                          }}
-                        >
+                          }}>
                           Wait {timer}s
                         </Text>
-                          
-                        </View>
-                       
-                       
-                      )}
-                    </View>
+                      </View>
+                    )}
+                  </View>
                   {!isOtpSent ? (
                     <LinearGradient
                       colors={['#4756ca', '#616dc7']}
-                      style={[styles.loginButton,{top:-SCREEN_HEIGHT*0.03}]}>
+                      style={[
+                        styles.loginButton,
+                        {top: -SCREEN_HEIGHT * 0.03},
+                      ]}>
                       <TouchableOpacity
                         style={styles.loginButton}
                         onPress={handleSendOtp}>
@@ -392,9 +586,38 @@ const LoginScreen = () => {
                 </>
               ) : (
                 <>
+
+<TextInput
+                                      onBlur={() => setisusernameactive(false)}
+                                      onFocus={() => setisusernameactive(true)}
+                                      style={[
+                                        styles.Whiteinput,
+                                        {
+                                          borderColor: isusernameactive ? '#4752ca' : '#fff',
+                                        },{top: -SCREEN_HEIGHT * 0.04}
+                                   
+                                      ]}
+                                      placeholder="User name"
+                                      value={username}
+                                      onChangeText={validateUsername}
+                                      placeholderTextColor="#000"
+                                      keyboardType="default"
+                                    />
+                                    {errorMessage ? (
+                                      <Text
+                                        style={{
+                                          color: 'red',
+                                          width:SCREEN_HEIGHT*0.4,
+                                          fontSize: 12,
+                                 bottom:SCREEN_HEIGHT * 0.03,
+                                          left: SCREEN_HEIGHT * 0.03,
+                                        }}>
+                                        {errorMessage}
+                                      </Text>
+                                    ) : null}
                   <TextInput
-                    onBlur={() => setisActiveemail(false)}
-                    onFocus={() => setisActiveemail(true)}
+                    onBlur={() =>setisActivee(false)}
+                    onFocus={() =>setisActivee(true)}
                     style={[
                       styles.Whiteinput,
                       {borderColor: isActiveemail ? '#4752ca' : '#fff'},
@@ -405,27 +628,44 @@ const LoginScreen = () => {
                     onChangeText={setEmail}
                     placeholderTextColor="#000"
                   />
-                  <TextInput
-                    onBlur={() => setisActive(false)}
-                    Corrected
-                    onFocus={() => setisActive(true)}
-                    style={[
-                      styles.Whiteinput,
-                      {borderColor: isActive ? '#4752ca' : '#fff'},
-                      {marginVertical: 20},
-                      {top: -SCREEN_HEIGHT * 0.025},
-                    ]}
-                    placeholder="Enter Password"
-                    value={password}
-                    onChangeText={text => setPassword(text)}
-                    placeholderTextColor="#000"
-                    keyboardType="default"
-                  />
+                       <TextInput
+                                        onBlur={() => setisActivepassword(false)}
+                                        onFocus={() => setisActivepassword(true)}
+                                        style={[
+                                          styles.Whiteinput,
+                                          {
+                                            borderColor: isActivepassword ? '#4752ca' : '#fff',
+                                          }, 
+                                        ]}
+                                        placeholder="Enter Password"
+                                        value={password}
+                                        onChangeText={validatePassword}
+                                        placeholderTextColor="#000"
+                                        secureTextEntry
+                                        keyboardType="default"
+                                      />
+                                      {passwordError ? (
+
+                             
+                           <Text
+                           style={{
+                            width:SCREEN_HEIGHT*0.4,
+                
+                             color: 'red',
+                             fontSize: 12,
+        
+                             left: SCREEN_HEIGHT * 0.04,
+            
+                           }}>
+                                          {passwordError}
+                                        </Text>
+                                      ) : null}
+                
                   <LinearGradient
                     colors={['#4756ca', '#616dc7']}
-                    style={styles.loginButton}>
+                    style={[styles.loginButton,{top:SCREEN_HEIGHT*0.02}]}>
                     <TouchableOpacity
-                      style={styles.loginButton}
+                      style={[styles.loginButton]}
                       onPress={handleLoginWithEmail}>
                       <Text style={styles.loginButtonText}>Login</Text>
                     </TouchableOpacity>
@@ -438,10 +678,7 @@ const LoginScreen = () => {
                 </Text>
               )}
             </View>
-            <Modal 
-              animationType="slide"
-              transparent
-              visible={isvisiable}>
+            <Modal animationType="slide" transparent visible={isvisiable}>
               <View
                 style={{
                   flex: 1,
@@ -461,14 +698,10 @@ const LoginScreen = () => {
                   <LottieView
                     style={{height: 150, width: 150}}
                     duration={14}
-    
                     ref={animationRef}
                     autoPlay
                     loop
                     source={require('../assets/Sucessfull.json')}
-
-              
-       
                   />
                 </View>
               </View>
@@ -596,6 +829,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
+
   },
   loginButtonText: {
     color: '#fff',
