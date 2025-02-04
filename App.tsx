@@ -133,8 +133,9 @@ const DrawerNavigator = () => (
 );
 
 const AuthNavigator = () => (
-  <Stack.Navigator initialRouteName="SplashScreen" screenOptions={{ headerShown: false }}>
+  <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SplashScreen" component={SplashScreen} />
+    <Stack.Screen name="MainApp" component={DrawerNavigator} options={{ headerShown: false }} />
     <Stack.Screen name="OnBoarding" component={OnBoarding} />
     <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login' }} />
     <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ title: 'Register' }} />
@@ -147,10 +148,15 @@ const AuthNavigator = () => (
 
 const HomeNavigator = () => (
   <Stack.Navigator initialRouteName="MainApp">
+
     <Stack.Screen name="MainApp" component={DrawerNavigator} options={{ headerShown: false }} />
     <Stack.Screen name="Inventory" component={InventoryScreen} options={{ headerShown: true, title: 'Inventory' }} />
     <Stack.Screen name="SearchScreen" component={SearchScreen} options={{ headerShown: true, headerTitleStyle: { fontSize: 15 } }} />
     <Stack.Screen name="AddProduct" component={AddProduct} options={{ headerShown: false, headerTitleStyle: { fontSize: 15 } }} />
+    <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ title: 'Register' }} />
+    <Stack.Screen name="OnBoarding" component={OnBoarding} options={{headerShown:false}} />
+    <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login',headerShown: false }} />
+    <Stack.Screen name="AddNewStore" component={AddNewStore} options={{ title: 'Add New Store' }} />
   </Stack.Navigator>
 );
 

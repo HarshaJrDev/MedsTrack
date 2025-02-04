@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { View, StyleSheet, Text, ScrollView, Modal, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, ScrollView, Modal, TouchableOpacity, PermissionsAndroid, Platform, ActivityIndicator } from 'react-native';
 import { TextInput, Checkbox, Button, DefaultTheme } from 'react-native-paper';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useNavigation } from '@react-navigation/native';
+import Geolocation from '@react-native-community/geolocation';
 const StoreDetailsForm = () => {
   const [isOwner, setIsOwner] = React.useState(false);
   const [storeName, setStoreName] = React.useState('');
@@ -15,8 +16,10 @@ const StoreDetailsForm = () => {
   const [operationDays, setOperationDays] = React.useState('');
   const [operationHours, setOperationHours] = React.useState('');
   const [isModalVisible, setIsModalVisible] = React.useState(false);
-  const [isDatePickerVisible, setDatePickerVisibility] = React.useState(false);
-  const [isTimePickerVisible, setTimePickerVisibility] = React.useState(false);
+  const [location, setLocation] = React.useState(null);
+  const [address, setAddress] = React.useState('');
+  const [error, setError] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
   const navigation = useNavigation()
 
   const customTheme = {
@@ -26,6 +29,115 @@ const StoreDetailsForm = () => {
       text: '#000',
     },
   };
+
+  const checkLocationService = () => {
+    Geolocation.getCurrentPosition(
+      position => {
+        console.log('Latitude:', position.coords.latitude);
+        console.log('Longitude:', position.coords.longitude);
+        requestLocationPermission();
+      },
+      err => {
+        console.error('Error fetching location:', err.message);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  };
+  
+  React.useEffect(() => {
+    checkLocationService();
+  }, []);
+
+  const requestLocationPermission  = async () => {
+    if (location) return; // Skip if location is already fetched
+
+    if (Platform.OS === 'ios') {
+      getLocation();
+    } else {
+      try {
+        const hasPermission = await PermissionsAndroid.check(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+
+        if (hasPermission) {
+          getLocation();
+        } else {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            {
+              title: 'Location Permission',
+              message: 'This app needs access to your location',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          );
+
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            getLocation();
+          } else {
+            setError('Location permission denied');
+          }
+        }
+      } catch (err) {
+        setError('Error requesting location permission');
+      }
+    }
+  };
+
+
+  const getLocation = () => {
+    Geolocation.getCurrentPosition(
+      async position => {
+        if (!location) { // Prevent multiple updates
+          setLocation(position.coords);
+          await getReverseGeocode(
+            position.coords.latitude,
+            position.coords.longitude,
+          );
+        }
+      },
+      err => setError('Error getting location: ' + err.message),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+    );
+  };
+  
+  const getReverseGeocode = async (latitude, longitude) => {
+    try {
+      setLoading(true); // Start loader
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'YourAppName',
+            'Accept-Language': 'en',
+          },
+        }
+      );
+      
+      const data = await response.json();
+      console.log('====================================');
+      console.log(data.address);
+      console.log('====================================');
+  
+      const placeName = data.address?.tourism;
+      const road = data.address?.road;
+      const tourism = data.address?.tourism;
+      const state_district = data.address?.state_district;
+      const state = data.address?.state;
+      const postcode = data.address?.postcode;
+      const formattedAddress = `${placeName}, ${tourism} ${road}, ${state},${state_district}, ${postcode}`;
+  
+      setAddress(formattedAddress);
+      setStoreLocation(formattedAddress);
+    } catch (err) {
+      setError('Error getting address: ' + err.message);
+    } finally {
+      setLoading(false); 
+    }
+  };
+  
+
 
   const handleSubmit = () => {
     if (
@@ -50,40 +162,10 @@ const StoreDetailsForm = () => {
   const closeModalAndNavigate = () => {
     setIsModalVisible(false);
   };
-
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
-
-  const hideDatePicker = () => {
-    setDatePickerVisibility(false);
-  };
-
-  const handleDateConfirm = (date) => {
-    const day = date.getDay(); // 0 = Sunday, 6 = Saturday
-    if (day === 0 || day === 6) {
-      setSelectedDate(date.toDateString());
-      hideDatePicker();
-    } else {
-      alert("Please select a weekend (Saturday or Sunday).");
-    }
-  };
-
-  const showTimePicker = () => {
-    setTimePickerVisibility(true);
-  };
-
-  const hideTimePicker = () => {
-    setTimePickerVisibility(false);
-  };
-
-  const handleTimeConfirm = (time) => {
-    setOperationHours(time.toLocaleTimeString());
-    hideTimePicker();
-  };
-
   return (
     <ScrollView>
+
+      
       <View style={styles.container}>
         <Text style={styles.heading}>Store Details</Text>
 
@@ -95,14 +177,21 @@ const StoreDetailsForm = () => {
           mode="outlined"
           theme={customTheme}
         />
-        <TextInput
-          label="Store Location"
-          value={storeLocation}
-          onChangeText={setStoreLocation}
-          style={styles.input}
-          mode="outlined"
-          theme={customTheme}
-        />
+
+{loading ? (
+  <ActivityIndicator size="large" color="#4756ca" style={{ marginTop: 20 }} />
+) : storeLocation ? (
+  <TextInput
+    label="Store Location"
+    value={storeLocation}
+    onChangeText={setStoreLocation}
+    style={styles.input}
+    mode="outlined"
+    theme={customTheme}
+  />
+) : (
+  <Text>Please wait, fetching location... if is took time please check where turn on Location or not</Text>
+)}        
         <TextInput
           label="Pharmacy License Number"
           value={pharmacyLicense}
@@ -119,15 +208,6 @@ const StoreDetailsForm = () => {
           mode="outlined"
           theme={customTheme}
         />
-
-        <TouchableOpacity onPress={showDatePicker} style={[styles.input, styles.pickerBox]}>
-          <Text style={styles.pickerText}>{operationDays || 'Select Operation Days'}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={showTimePicker} style={[styles.input, styles.pickerBox]}>
-          <Text style={styles.pickerText}>{operationHours || 'Select Operation Hours'}</Text>
-        </TouchableOpacity>
-
         <Text style={styles.subHeading}>Contact Person Details</Text>
         <View style={styles.checkboxContainer}>
           <Checkbox
@@ -185,23 +265,6 @@ const StoreDetailsForm = () => {
             </View>
           </View>
         </Modal>
-
-        {/* Date Picker Modal */}
-        <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleDateConfirm}
-          onCancel={hideDatePicker}
-        
-        />
-
-        {/* Time Picker Modal */}
-        <DateTimePickerModal
-          isVisible={isTimePickerVisible}
-          mode="time"
-          onConfirm={handleTimeConfirm}
-          onCancel={hideTimePicker}
-        />
       </View>
     </ScrollView>
   );

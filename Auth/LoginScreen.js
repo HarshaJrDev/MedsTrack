@@ -22,11 +22,24 @@ import LottieView from 'lottie-react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import {
+  BallIndicator,
+  BarIndicator,
+  DotIndicator,
+  MaterialIndicator,
+  PacmanIndicator,
+  PulseIndicator,
+  SkypeIndicator,
+  UIActivityIndicator,
+  WaveIndicator,
+} from 'react-native-indicators';
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
+import { LOG_API} from '@env';
+
 const LoginScreen = () => {
+  console.log("is enter Login Screen");
   const [isActivepassword, setisActivepassword] = useState(false);
   const [isusernameactive, setisusernameactive] = useState('');
   const navigation = useNavigation();
@@ -48,6 +61,7 @@ const LoginScreen = () => {
   const [isUsernameValid, setIsUsernameValid] = useState(null); // null: no validation, true: valid, false: invalid
   const [isEmailValid, setIsEmailValid] = useState(null);
   const [isPasswordValid, setIsPasswordValid] = useState(null);
+  const [isLoading,setislodading]=useState(false)
   const inputRefs = useRef([]);
 
   const validateUsername = text => {
@@ -83,26 +97,30 @@ const LoginScreen = () => {
     }
   }, []);
 
-  const validatePassword = text => {
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(text)) {
-      setIsPasswordValid(true);
-      setPasswordError(
-        'Password must be at least 8 characters, include a special character, uppercase, lowercase, and a number.',
-      );
-    } else {
-      setPasswordError('');
-      setIsPasswordValid(false);
-    }
-    setPassword(text);
-  };
+   const validatePassword = text => {
+     const passwordRegex =
+       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+     if (passwordRegex.test(text)) {
+       setIsPasswordValid(true);
+       setPasswordError(
+         'Password must be at least 8 characters, include a special character, uppercase, lowercase, and a number.',
+       );
+     } else {
+       setPasswordError('');
+       setIsPasswordValid(false);
+     }
+     setPassword(text);
+   };
 
-  //https://britepharma-dev.bliptyn.com/api/v1/auth/login
-  const handleLoginWithEmail = async () => {
+  
+   const handleLoginWithEmail = async () => {
     console.log('Starting handleLoginWithEmail...');
-    if (!email || !password || !username) {
-      console.log('Missing fields:', { email, password, username });
+  
+    const trimmedEmail = email?.trim();
+    const trimmedPassword = password?.trim();
+  
+    if (!trimmedEmail || !trimmedPassword) {
+      console.log('Missing fields:', { email, password });
       Toast.show({
         type: 'error',
         text1: 'Missing Information',
@@ -110,9 +128,10 @@ const LoginScreen = () => {
       });
       return;
     }
+  
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      console.log('Invalid email format:', email.trim());
+    if (!emailRegex.test(trimmedEmail)) {
+      console.log('Invalid email format:', trimmedEmail);
       Toast.show({
         type: 'error',
         text1: 'Invalid Email',
@@ -121,65 +140,71 @@ const LoginScreen = () => {
       return;
     }
   
+    if (trimmedPassword.length < 6) {
+      console.log('Weak password');
+      Toast.show({
+        type: 'error',
+        text1: 'Weak Password',
+        text2: 'Password must be at least 6 characters long.',
+      });
+      return;
+    }
+
+    // Show loader before API call
+    setislodading(true);
+    setisvisiable(true);
+
     try {
       console.log('Sending registration request...');
       
-      setisvisiable(true);
-  
       const response = await axios.post('https://britepharma-dev.bliptyn.com/api/v1/auth/login', {
-        email: email.trim(),
-        password: password,
-        username: username,
+        email: trimmedEmail,
+        password: trimmedPassword,
+        username: email
       });
-  
+
       console.log('API Response:', response.data);
-  
+
       if (response.status === 200) {
         console.log('Registration successful:', response.data);
-  
+
         const userData = {
-          email: email.trim(),
-          password: password,
-          username: username,
+          email: trimmedEmail,
+          password: trimmedPassword,
+          username: email
         };
-  
+
         console.log('Saving user data to AsyncStorage:', userData);
         await AsyncStorage.setItem('userData', JSON.stringify(userData));
-  
+
         Toast.show({
           type: 'success',
           text1: 'Registration Successful',
           text2: 'Welcome to the app!',
         });
-  
+
         console.log('Navigating to AddProduct...');
-        setisvisiable(false);
-        navigation.replace('AddProduct');
+        navigation.replace('OnBoarding');
       } else {
         console.log('Registration failed with status:', response.status);
         Alert.alert('Registration Failed', 'An error occurred. Please try again.');
       }
     } catch (error) {
       console.error('Error during registration:', error.response?.data || error.message);
-  
       const errorMessage =
-        error.response?.data?.message ||
-        'Something went wrong. Please try again later.';
+        error.response?.data?.message || 'Something went wrong. Please try again later.';
       Alert.alert('Error', errorMessage);
     } finally {
-      console.log('Resetting visibility...');
+      // Hide loader after API call completes
+      setislodading(false);
       setisvisiable(false);
-  
-      // Navigate to OnBoarding after timeout
-      setTimeout(() => {
-        console.log('Replacing navigation to OnBoarding...');
-        navigation.replace('OnBoarding');
-      }, 100);
     }
   };
 
+  
+
   const handleSendOtp = () => {
-    showSuccessToast();
+    
     setIsOtpSent(true);
     setIsTimerActive(true);
     setTimer(30);
@@ -247,7 +272,7 @@ const LoginScreen = () => {
     console.log('Starting handleVerify...');
 
     // Check for missing fields
-    if (!email || !password || !username) {
+    if (!email || !password ) {
       console.log('Missing fields:', {email, password, username});
       Toast.show({
         type: 'error',
@@ -276,7 +301,6 @@ const LoginScreen = () => {
         {
           email: email.trim(),
           password: password,
-          username: username,
         },
       );
 
@@ -288,7 +312,7 @@ const LoginScreen = () => {
         const userData = {
           email: email.trim(),
           password: password,
-          username: username,
+
         };
 
         console.log('Saving user data to AsyncStorage:', userData);
@@ -340,405 +364,412 @@ const LoginScreen = () => {
       animation="fadeIn"
       duration={500}
       style={styles.MainContainer}>
-      <KeyboardAvoidingView
-        style={[styles.MainContainer]}
-        behavior={Platform.OS === 'android' ? 'padding' : undefined}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <LinearGradient
-            style={styles.MainContainer}
-            colors={['#4756ca', '#616dc7']}>
-            <View style={styles.HeaderConatiner}>
-              <View
-                style={{
-                  justifyContent: 'center',
-                  flexDirection: 'row',
-                  bottom: SCREEN_HEIGHT * 0.03,
-                }}>
-                <Text
-                  style={{
-                    color: '#fff',
-                    textAlign: 'center',
-                    fontFamily: 'Nunito-Regular',
-                    top: 10,
-                  }}>
-                  Don't have an account?
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('RegistrationScreen')}>
-                <LinearGradient
-                  colors={['#AAB3E580', '#AAB3E580']}
-                  style={[styles.Box]}>
-                  <Text
-                    style={{
-                      fontFamily: 'Nunito-Bold',
-                      color: '#fff',
-                      textAlign: 'center',
-                    }}>
-                    Get Started
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-            <View style={{bottom: SCREEN_HEIGHT * 0.02}}>
-              <Toast />
-            </View>
-            <View style={styles.CompanyTittleContainer}>
-              <Text style={styles.CompanyTittle}>MedsTrack</Text>
-              <View>
-                <Image
-                  source={require('../assets/logo-removebg-preview.png')}
-                  style={styles.logo}
-                />
-              </View>
-            </View>
 
-            <LinearGradient
-              colors={['#AAB3E5', '#4752ca']}
-              style={styles.LowerContainer}></LinearGradient>
-
-            <View style={styles.UpperContainer}>
-              <View
-                style={{
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginTop: SCREEN_HEIGHT * 0.03,
-                }}>
-                <Text
-                  style={{
-                    fontFamily: 'Nunito-Bold',
-                    color: '#000',
-                    fontSize: SCREEN_HEIGHT * 0.04,
-                  }}>
-                  Welcome Back
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'Nunito-Regular',
-                    color: '#000',
-                    fontSize: SCREEN_HEIGHT * 0.021,
-                  }}>
-                  Enter your details below
-                </Text>
-              </View>
-
-              <View style={styles.toggleContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.toggleButton,
-                    selectedOption === 'phone' && styles.activeToggleButton,
-                  ]}
-                  onPress={() => {
-                    setSelectedOption('phone');
-                    setIsOtpSent(false);
-                  }}>
-                  <Text
-                    style={[
-                      styles.toggleButtonText,
-                      selectedOption === 'phone' &&
-                        styles.activeToggleButtonText,
-                    ]}>
-                    Phone/OTP
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.toggleButton,
-                    selectedOption === 'email' && styles.activeToggleButton,
-                  ]}
-                  onPress={() => setSelectedOption('email')}>
-                  <Text
-                    style={[
-                      styles.toggleButtonText,
-                      selectedOption === 'email' &&
-                        styles.activeToggleButtonText,
-                    ]}>
-                    Email/Password
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              {selectedOption === 'phone' ? (
-                <>
-                  <View>
-                    <TextInput
-                      onBlur={() => setisActive(false)}
-                      onFocus={() => setisActive(true)}
-                      style={[
-                        styles.Whiteinput,
-                        {borderColor: isActive ? '#4752ca' : '#fff'},
-                        {top: -SCREEN_HEIGHT * 0.03},
-                      ]}
-                      placeholder="Enter Phone Number"
-                      value={phoneNumber}
-                      onChangeText={setPhoneNumber}
-                      placeholderTextColor="#000"
-                      keyboardType="phone-pad"
-                    />
-                  </View>
-                  {isOtpSent && (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        width: '100%',
-                        columnGap: 17,
-                        marginBottom: 20,
-                        right: SCREEN_HEIGHT * 0.005,
-                      }}>
-                      {otpInputs.map((_, index) => (
-                        <TextInput
-                          key={index}
-                          ref={el => (inputRefs.current[index] = el)}
-                          value={otpInputs[index]}
-                          onChangeText={text => handleInputChange(text, index)}
-                          onKeyPress={({nativeEvent}) => {
-                            if (nativeEvent.key === 'Backspace') {
-                              handleBackspace(otpInputs[index], index);
-                            }
-                          }}
-                          style={[
-                            styles.otpInput,
-                            {
-                              borderColor: otpInputs[index]
-                                ? '#4752ca'
-                                : '#000',
-                            },
-                          ]}
-                          keyboardType="number-pad"
-                          maxLength={6}
-                          blurOnSubmit={index === otpInputs.length - 1}
-                        />
-                      ))}
-                    </View>
-                  )}
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginHorizontal: SCREEN_WIDTH * 0.05,
-                    }}>
-                    <TouchableOpacity
-                      disabled={isTimerActive}
-                      onPress={handleSendOtp}>
-                      <Text
-                        style={{
-                          fontSize: 15,
-                          textAlign: 'right',
-                          fontFamily: 'Nunito-Regular',
-                          color: isTimerActive ? '#000' : '#000',
-                        }}>
-                        {isOtpSent ? '' : ''}
-                      </Text>
-                    </TouchableOpacity>
-                    {isTimerActive && (
-                      <View style={{bottom: SCREEN_HEIGHT * 0.01}}>
-                        <Text
-                          style={{
-                            color: '#4752ca',
-                            fontSize: 16,
-                            fontFamily: 'Nunito-Regular',
-                          }}>
-                          Wait {timer}s
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  {!isOtpSent ? (
-                    <LinearGradient
-                      colors={['#4756ca', '#616dc7']}
-                      style={[
-                        styles.loginButton,
-                        {top: -SCREEN_HEIGHT * 0.03},
-                      ]}>
-                      <TouchableOpacity
-                        style={styles.loginButton}
-                        onPress={handleSendOtp}>
-                        <Text style={styles.loginButtonText}>Verify OTP </Text>
-                      </TouchableOpacity>
-                    </LinearGradient>
-                  ) : (
-                    <LinearGradient
-                      colors={['#4756ca', '#616dc7']}
-                      style={styles.loginButton}>
-                      <TouchableOpacity
-                        style={styles.loginButton}
-                        onPress={handleVerify}>
-                        <Text style={styles.loginButtonText}>Login</Text>
-                      </TouchableOpacity>
-                    </LinearGradient>
-                  )}
-                </>
-              ) : (
-                <>
-              <View>
-  <TextInput
-    onBlur={() => setisusernameactive(false)}
-    onFocus={() => setisusernameactive(true)}
-    style={[
-      styles.Whiteinput,
-      {
-        borderColor: isusernameactive ? '#4752ca' : '#fff',
-        top: -SCREEN_HEIGHT * 0.04,
-        paddingRight: 30, // Add padding to make space for the icon
-      },
-    ]}
-    placeholder="User name"
-    value={username}
-    onChangeText={validateUsername}
-    placeholderTextColor="#000"
-    keyboardType="default"
-  />
-
-  <View style={styles.iconContainer}>
-    {isUsernameValid === false && (
-      <Ionicons
-        name="checkmark-circle"
-        size={20}
-        color="#4752ca"
-        style={styles.icon}
-      />
-    )}
-    {isUsernameValid === true && (
-      <Ionicons
-        name="close-circle"
-        size={20}
-        color="red"
-        style={styles.icon}
-      />
-    )}
-  </View>
-</View>
-
+        {isLoading ? ( <View style={styles.MainContainer}>
+              
+                  <DotIndicator size={8} color="#4756ca" />
+                </View>) :(
+                   <KeyboardAvoidingView
+                   style={[styles.MainContainer]}
+                   behavior={Platform.OS === 'android' ? 'padding' : undefined}>
+                   <ScrollView showsVerticalScrollIndicator={false}>
+                     <LinearGradient
+                       style={styles.MainContainer}
+                       colors={['#4756ca', '#616dc7']}>
+                       <View style={styles.HeaderConatiner}>
+                         <View
+                           style={{
+                             justifyContent: 'center',
+                             flexDirection: 'row',
+                             bottom: SCREEN_HEIGHT * 0.03,
+                           }}>
+                           <Text
+                             style={{
+                               color: '#fff',
+                               textAlign: 'center',
+                               fontFamily: 'Nunito-Regular',
+                               top: 10,
+                             }}>
+                             Don't have an account?
+                           </Text>
+                         </View>
+                         <TouchableOpacity
+                           onPress={() => navigation.navigate('RegistrationScreen')}>
+                           <LinearGradient
+                             colors={['#AAB3E580', '#AAB3E580']}
+                             style={[styles.Box]}>
+                             <Text
+                               style={{
+                                 fontFamily: 'Nunito-Bold',
+                                 color: '#fff',
+                                 textAlign: 'center',
+                               }}>
+                               Get Started
+                             </Text>
+                           </LinearGradient>
+                         </TouchableOpacity>
+                       </View>
+                       <View style={{bottom: SCREEN_HEIGHT * 0.02}}>
+                         <Toast />
+                       </View>
+                       <View style={styles.CompanyTittleContainer}>
+                         <Text style={styles.CompanyTittle}>MedsTrack</Text>
+                         <View>
+                           <Image
+                             source={require('../assets/logo-removebg-preview.png')}
+                             style={styles.logo}
+                           />
+                         </View>
+                       </View>
            
-                  {errorMessage ? (
-                    <Text
-                      style={{
-                        color: 'red',
-                        width: SCREEN_HEIGHT * 0.4,
-                        fontSize: 12,
-                        bottom: SCREEN_HEIGHT * 0.03,
-                        left: SCREEN_HEIGHT * 0.03,
-                      }}>
-                      {errorMessage}
-                    </Text>
-                  ) : null}
-                  <TextInput
-                    onBlur={() => setisActivee(false)}
-                    onFocus={() => setisActivee(true)}
-                    style={[
-                      styles.Whiteinput,
-                      {borderColor: isActiveemail ? '#4752ca' : '#fff'},
-                      {top: -SCREEN_HEIGHT * 0.02},
-                    ]}
-                    placeholder="Enter Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholderTextColor="#000"
-                  />
+                       <LinearGradient
+                         colors={['#AAB3E5', '#4752ca']}
+                         style={styles.LowerContainer}></LinearGradient>
+           
+                       <View style={styles.UpperContainer}>
+                         <View
+                           style={{
+                             justifyContent: 'center',
+                             alignItems: 'center',
+                             marginTop: SCREEN_HEIGHT * 0.03,
+                           }}>
+                           <Text
+                             style={{
+                               fontFamily: 'Nunito-Bold',
+                               color: '#000',
+                               fontSize: SCREEN_HEIGHT * 0.04,
+                             }}>
+                             Welcome Back
+                           </Text>
+                           <Text
+                             style={{
+                               fontFamily: 'Nunito-Regular',
+                               color: '#000',
+                               fontSize: SCREEN_HEIGHT * 0.021,
+                             }}>
+                             Enter your details below
+                           </Text>
+                         </View>
+           
+                         <View style={styles.toggleContainer}>
+                           <TouchableOpacity
+                             style={[
+                               styles.toggleButton,
+                               selectedOption === 'phone' && styles.activeToggleButton,
+                             ]}
+                             onPress={() => {
+                               setSelectedOption('phone');
+                               setIsOtpSent(false);
+                             }}>
+                             <Text
+                               style={[
+                                 styles.toggleButtonText,
+                                 selectedOption === 'phone' &&
+                                   styles.activeToggleButtonText,
+                               ]}>
+                               Phone/OTP
+                             </Text>
+                           </TouchableOpacity>
+                           <TouchableOpacity
+                             style={[
+                               styles.toggleButton,
+                               selectedOption === 'email' && styles.activeToggleButton,
+                             ]}
+                             onPress={() => setSelectedOption('email')}>
+                             <Text
+                               style={[
+                                 styles.toggleButtonText,
+                                 selectedOption === 'email' &&
+                                   styles.activeToggleButtonText,
+                               ]}>
+                               Email/Password
+                             </Text>
+                           </TouchableOpacity>
+                         </View>
+                         {selectedOption === 'phone' ? (
+                           <>
+                             <View>
+                               <TextInput
+                                 onBlur={() => setisActive(false)}
+                                 onFocus={() => setisActive(true)}
+                                 style={[
+                                   styles.Whiteinput,
+                                   {borderColor: isActive ? '#4752ca' : '#fff'},
+                                   {top: -SCREEN_HEIGHT * 0.03},
+                                 ]}
+                                 placeholder="Enter Phone Number"
+                                 value={phoneNumber}
+                                 onChangeText={setPhoneNumber}
+                                 placeholderTextColor="#000"
+                                 keyboardType="phone-pad"
+                               />
+                             </View>
+                             {isOtpSent && (
+                               <View
+                                 style={{
+                                   flexDirection: 'row',
+                                   justifyContent: 'center',
+                                   width: '100%',
+                                   columnGap: 17,
+                                   marginBottom: 20,
+                                   right: SCREEN_HEIGHT * 0.005,
+                                 }}>
+                                 {otpInputs.map((_, index) => (
+                                   <TextInput
+                                     key={index}
+                                     ref={el => (inputRefs.current[index] = el)}
+                                     value={otpInputs[index]}
+                                     onChangeText={text => handleInputChange(text, index)}
+                                     onKeyPress={({nativeEvent}) => {
+                                       if (nativeEvent.key === 'Backspace') {
+                                         handleBackspace(otpInputs[index], index);
+                                       }
+                                     }}
+                                     style={[
+                                       styles.otpInput,
+                                       {
+                                         borderColor: otpInputs[index]
+                                           ? '#4752ca'
+                                           : '#000',
+                                       },
+                                     ]}
+                                     keyboardType="number-pad"
+                                     maxLength={6}
+                                     blurOnSubmit={index === otpInputs.length - 1}
+                                   />
+                                 ))}
+                               </View>
+                             )}
+                             <View
+                               style={{
+                                 flexDirection: 'row',
+                                 justifyContent: 'space-between',
+                                 alignItems: 'center',
+                                 marginHorizontal: SCREEN_WIDTH * 0.05,
+                               }}>
+                               <TouchableOpacity
+                                 disabled={isTimerActive}
+                                 onPress={handleSendOtp}>
+                                 <Text
+                                   style={{
+                                     fontSize: 15,
+                                     textAlign: 'right',
+                                     fontFamily: 'Nunito-Regular',
+                                     color: isTimerActive ? '#000' : '#000',
+                                   }}>
+                                   {isOtpSent ? '' : ''}
+                                 </Text>
+                               </TouchableOpacity>
+                               {isTimerActive && (
+                                 <View style={{bottom: SCREEN_HEIGHT * 0.01}}>
+                                   <Text
+                                     style={{
+                                       color: '#4752ca',
+                                       fontSize: 16,
+                                       fontFamily: 'Nunito-Regular',
+                                     }}>
+                                     Wait {timer}s
+                                   </Text>
+                                 </View>
+                               )}
+                             </View>
+                             {!isOtpSent ? (
+                               <LinearGradient
+                                 colors={['#4756ca', '#616dc7']}
+                                 style={[
+                                   styles.loginButton,
+                                   {top: -SCREEN_HEIGHT * 0.03},
+                                 ]}>
+                                 <TouchableOpacity
+                                   style={styles.loginButton}
+                                   onPress={handleSendOtp}>
+                                   <Text style={styles.loginButtonText}>Verify OTP </Text>
+                                 </TouchableOpacity>
+                               </LinearGradient>
+                             ) : (
+                               <LinearGradient
+                                 colors={['#4756ca', '#616dc7']}
+                                 style={styles.loginButton}>
+                                 <TouchableOpacity
+                                   style={styles.loginButton}
+                                   onPress={handleVerify}>
+                                   <Text style={styles.loginButtonText}>Login</Text>
+                                 </TouchableOpacity>
+                               </LinearGradient>
+                             )}
+                           </>
+                         ) : (
+                           <>
+                         <View>
+             {/* <TextInput
+               onBlur={() => setisusernameactive(false)}
+               onFocus={() => setisusernameactive(true)}
+               style={[
+                 styles.Whiteinput,
+                 {
+                   borderColor: isusernameactive ? '#4752ca' : '#fff',
+                   top: -SCREEN_HEIGHT * 0.04,
+                   paddingRight: 30, // Add padding to make space for the icon
+                 },
+               ]}
+               placeholder="User name"
+               value={username}
+               onChangeText={validateUsername}
+               placeholderTextColor="#000"
+               keyboardType="default"
+             /> */}
+           
+             <View style={styles.iconContainer}>
+               {isUsernameValid === false && (
+                 <Ionicons
+                   name="checkmark-circle"
+                   size={20}
+                   color="#4752ca"
+                   style={styles.icon}
+                 />
+               )}
+               {isUsernameValid === true && (
+                 <Ionicons
+                   name="close-circle"
+                   size={20}
+                   color="red"
+                   style={styles.icon}
+                 />
+               )}
+             </View>
+           </View>
+           
+                      
+                             {errorMessage ? (
+                               <Text
+                                 style={{
+                                   color: 'red',
+                                   width: SCREEN_HEIGHT * 0.4,
+                                   fontSize: 12,
+                                   bottom: SCREEN_HEIGHT * 0.03,
+                                   left: SCREEN_HEIGHT * 0.03,
+                                 }}>
+                                 {errorMessage}
+                               </Text>
+                             ) : null}
+                             <TextInput
+                               onBlur={() => setisActivee(false)}
+                               onFocus={() => setisActivee(true)}
+                               style={[
+                                 styles.Whiteinput,
+                                 {borderColor: isActiveemail ? '#4752ca' : '#fff'},
+                                 {top: -SCREEN_HEIGHT * 0.02},
+                               ]}
+                               placeholder="Enter Email"
+                               value={email}
+                               onChangeText={setEmail}
+                               placeholderTextColor="#000"
+                             />
+           
+           
+           <View>
+             <TextInput
+               onBlur={() => setisActivepassword(false)}
+               onFocus={() => setisActivepassword(true)}
+               style={[
+                 styles.Whiteinput,
+                 {
+                   borderColor: isActivepassword ? '#4752ca' : '#fff',
+                   paddingRight: 30, // Add padding to make space for the icon
+                 },
+               ]}
+               placeholder="Enter Password"
+               value={password}
+              onChangeText={validatePassword}
+               placeholderTextColor="#000"
+               secureTextEntry
+               keyboardType="default"
+             />
+           
+             <View style={[styles.iconContainer,{top:SCREEN_HEIGHT*0.04}]}>
+               {isPasswordValid === false && (
+                 <Ionicons
+                   name="checkmark-circle"
+                   size={20}
+                   color="#4752ca"
+                   style={styles.icon}
+                 />
+               )}
+               {isPasswordValid === true && (
+                 <Ionicons
+                   name="close-circle"
+                   size={20}
+                   color="red"
+                   style={styles.icon}
+                 />
+               )}
+             </View>
+           
+             {passwordError ? (
+               <Text
+                 style={{
+                   width: SCREEN_HEIGHT * 0.4,
+                   color: 'red',
+                   fontSize: 12,
+                   left: SCREEN_HEIGHT * 0.04,
+                 }}
+               >
+                 {passwordError}
+               </Text>
+             ) : null}
+           </View>
+                             <LinearGradient
+                               colors={['#4756ca', '#616dc7']}
+                               style={[styles.loginButton, {top: SCREEN_HEIGHT * 0.02}]}>
+                               <TouchableOpacity
+                                 style={[styles.loginButton]}
+                                 onPress={handleLoginWithEmail}>
+                                 <Text style={styles.loginButtonText}>Login</Text>
+                               </TouchableOpacity>
+                             </LinearGradient>
+                           </>
+                         )}
+                         {selectedOption === 'email' && (
+                           <Text onPress={handleforgotpassword} style={styles.forgotLabel}>
+                             Forgot Password?
+                           </Text>
+                         )}
+                       </View>
+                       <Modal animationType="slide" transparent visible={isvisiable}>
+                         <View
+                           style={{
+                             flex: 1,
+                             justifyContent: 'center',
+                             alignItems: 'center',
+                             backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                           }}>
+                           <View
+                             style={{
+                               height: 200,
+                               width: 200,
+                               backgroundColor: '#4a5556',
+                               borderRadius: 10,
+                               alignItems: 'center',
+                               justifyContent: 'center',
+                             }}>
+                             <LottieView
+                               style={{height: 150, width: 150}}
+                               duration={14}
+                               ref={animationRef}
+                               autoPlay
+                               loop
+                               source={require('../assets/Sucessfull.json')}
+                             />
+                           </View>
+                         </View>
+                       </Modal>
+                     </LinearGradient>
+                   </ScrollView>
+                 </KeyboardAvoidingView>
 
-
-<View>
-  <TextInput
-    onBlur={() => setisActivepassword(false)}
-    onFocus={() => setisActivepassword(true)}
-    style={[
-      styles.Whiteinput,
-      {
-        borderColor: isActivepassword ? '#4752ca' : '#fff',
-        paddingRight: 30, // Add padding to make space for the icon
-      },
-    ]}
-    placeholder="Enter Password"
-    value={password}
-    onChangeText={validatePassword}
-    placeholderTextColor="#000"
-    secureTextEntry
-    keyboardType="default"
-  />
-
-  <View style={[styles.iconContainer,{top:SCREEN_HEIGHT*0.04}]}>
-    {isPasswordValid === false && (
-      <Ionicons
-        name="checkmark-circle"
-        size={20}
-        color="#4752ca"
-        style={styles.icon}
-      />
-    )}
-    {isPasswordValid === true && (
-      <Ionicons
-        name="close-circle"
-        size={20}
-        color="red"
-        style={styles.icon}
-      />
-    )}
-  </View>
-
-  {passwordError ? (
-    <Text
-      style={{
-        width: SCREEN_HEIGHT * 0.4,
-        color: 'red',
-        fontSize: 12,
-        left: SCREEN_HEIGHT * 0.04,
-      }}
-    >
-      {passwordError}
-    </Text>
-  ) : null}
-</View>
-
-
-                  <LinearGradient
-                    colors={['#4756ca', '#616dc7']}
-                    style={[styles.loginButton, {top: SCREEN_HEIGHT * 0.02}]}>
-                    <TouchableOpacity
-                      style={[styles.loginButton]}
-                      onPress={handleLoginWithEmail}>
-                      <Text style={styles.loginButtonText}>Login</Text>
-                    </TouchableOpacity>
-                  </LinearGradient>
-                </>
-              )}
-              {selectedOption === 'email' && (
-                <Text onPress={handleforgotpassword} style={styles.forgotLabel}>
-                  Forgot Password?
-                </Text>
-              )}
-            </View>
-            <Modal animationType="slide" transparent visible={isvisiable}>
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                }}>
-                <View
-                  style={{
-                    height: 200,
-                    width: 200,
-                    backgroundColor: '#4a5556',
-                    borderRadius: 10,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  <LottieView
-                    style={{height: 150, width: 150}}
-                    duration={14}
-                    ref={animationRef}
-                    autoPlay
-                    loop
-                    source={require('../assets/Sucessfull.json')}
-                  />
-                </View>
-              </View>
-            </Modal>
-          </LinearGradient>
-        </ScrollView>
-      </KeyboardAvoidingView>
+                )}
+        
+     
     </Reanimatable.View>
   );
 };
@@ -902,7 +933,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     position: 'absolute',
-    left: SCREEN_HEIGHT*0.42,  // Adjust to position the icon inside the TextInput
+    left: SCREEN_HEIGHT*0.40,  // Adjust to position the icon inside the TextInput
     
     transform: [{ translateY: -SCREEN_HEIGHT*0.02 }],  // Center the icon vertically
   },

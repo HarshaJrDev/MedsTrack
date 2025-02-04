@@ -10,7 +10,19 @@ import {
   ScrollView,
   Alert,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
+import {
+  BallIndicator,
+  BarIndicator,
+  DotIndicator,
+  MaterialIndicator,
+  PacmanIndicator,
+  PulseIndicator,
+  SkypeIndicator,
+  UIActivityIndicator,
+  WaveIndicator,
+} from 'react-native-indicators';
 import React, {useEffect, useRef, useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import {Image} from 'react-native-animatable';
@@ -21,12 +33,19 @@ import 'react-native-gesture-handler';
 import LottieView from 'lottie-react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { REG_API} from '@env';
+
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
+
 
 const RegistrationScreen = () => {
   const navigation = useNavigation();
   const animationRef = useRef(null);
+
+  console.log(REG_API);
+  
 
   const OTP_LENGTH = 6;
   const [confirmpassword, setconfirmpassword] = useState();
@@ -50,6 +69,7 @@ const RegistrationScreen = () => {
   const [fullName, setfullName] = useState('');
   const [isactivefullname, setisactivefullname] = useState('');
   const [passwordError, setPasswordError] = useState('');
+   const [loading, setLoading] = React.useState(false);
   const inputRefs = useRef([]);
 
   const [errorMessage, setErrorMessage] = useState('');
@@ -59,7 +79,7 @@ const RegistrationScreen = () => {
     const usernameRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    if (!usernameRegex.test(text)) {
+    if (usernameRegex.test(text)) {
       setErrorMessage(
         'Username must be at least 8 characters long, include a special character, uppercase, lowercase, and a number.',
       );
@@ -116,12 +136,15 @@ const RegistrationScreen = () => {
           password: password,
           firstName: firstName,
           lastName: lastName,
+          fullName: firstName +  lastName,
+          username:email
         },
       );
 
-      console.log('API Response:', response);
+      
 
       if (response.status === 200) {
+        console.log('API Response:', response);
         console.log('Login successful');
         Toast.show({
           type: 'success',
@@ -133,6 +156,7 @@ const RegistrationScreen = () => {
         navigation.navigate('OnBoarding');
       } else {
         console.log('Login failed with status:', response.status);
+        console.log('API Response:', response);
         Alert.alert(
           'Registration Failed',
           'An error occurred. Please try again.',
@@ -233,10 +257,10 @@ const RegistrationScreen = () => {
       });
       return;
     }
-
+  
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
+    if (emailRegex.test(!email.trim())) {
       Toast.show({
         type: 'error',
         text1: 'Invalid Email',
@@ -244,72 +268,60 @@ const RegistrationScreen = () => {
       });
       return;
     }
-
+  
     try {
+      setLoading(true); // Start loading
       console.log('Sending registration request...');
-      const response = await axios.post(
-        'https://britepharma-dev.bliptyn.com/api/v1/auth/register',
-        {
-          firstName: firstName,
-          lastName: lastName,
-          email: email.trim(),
-          password: password,
-          fullName: fullName,
-          username: username,
-        },
-      );
-
+      
+      const response = await axios.post(REG_API, {
+      
+        email: email.trim(),
+        password: password,
+        fullName: fullName,
+        username: email.trim(),
+      });
+  
       console.log('API Response:', response.data);
-
+  
       if (response.status === 200) {
-        // Persist user data to AsyncStorage
+        // Persist user data
         const userData = {
-          firstName: firstName,
-          lastName: lastName,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
           email: email.trim(),
           password: password,
-          fullName: fullName,
-          username: username,
+          fullName: "",
+          username: email.trim(),
         };
-
+  
         await AsyncStorage.setItem('userData', JSON.stringify(userData));
-
+  
         Toast.show({
           type: 'success',
           text1: 'Registration Successful',
           text2: 'Welcome to the app!',
         });
-
+  
         console.log('Navigating to OnBoarding...');
-        setisvisiable(!isvisiable);
-        navigation.navigate('OnBoarding');
+        setisvisiable(false);
+        navigation.replace('OnBoarding');
       } else {
         console.log('Registration failed with status:', response.status);
-        Alert.alert(
-          'Registration Failed',
-          'An error occurred. Please try again.',
-        );
+        Alert.alert('Registration Failed', 'An error occurred. Please try again.');
       }
     } catch (error) {
-      console.error(
-        'Error during registration:',
-        error.response?.data || error.message,
-      );
-
+      console.error('Error during registration:', error.response?.data || error.message);
+  
       const errorMessage =
-        error.response?.data?.message ||
-        'Something went wrong. Please try again later.';
+        error.response?.data?.message || 'Something went wrong. Please try again later.';
       Alert.alert('Error', errorMessage);
     } finally {
       console.log('Resetting visibility...');
-      setisvisiable(!isvisiable);
-
-      setTimeout(() => {
-        console.log('Replacing navigation...');
-        navigation.replace('OnBoarding');
-      }, 100);
+      setisvisiable(false);
+      setLoading(false); // Stop loading
     }
   };
+  
 
   const validatePassword = text => {
     const passwordRegex =
@@ -335,11 +347,17 @@ const RegistrationScreen = () => {
     ),
   };
   return (
+   
     <Reanimatable.View
       animation="fadeIn"
       duration={500}
       style={styles.MainContainer}>
-      <KeyboardAvoidingView
+
+        {loading ? (
+           <View style={styles.MainContainer}>
+      
+          <DotIndicator size={8} color="#4756ca" />
+        </View>) :  (   <KeyboardAvoidingView
         behavior={Platform.OS === 'android' ? 'height' : undefined}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -427,7 +445,11 @@ const RegistrationScreen = () => {
               colors={['#AAB3E5', '#4752ca']}
               style={styles.LowerContainer}></LinearGradient>
 
-            <View style={[styles.UpperContainer,{marginTop:-SCREEN_HEIGHT*0.03}]}>
+            <View
+              style={[
+                styles.UpperContainer,
+                {marginTop: -SCREEN_HEIGHT * 0.03},
+              ]}>
               <View
                 style={{
                   justifyContent: 'center',
@@ -487,7 +509,7 @@ const RegistrationScreen = () => {
                       </Text>
                     ) : null}
 
-                    <TextInput
+                    {/* <TextInput
                       onBlur={() => setisactivefirstname(false)}
                       onFocus={() => setisactivefirstname(true)}
                       style={[
@@ -518,7 +540,7 @@ const RegistrationScreen = () => {
                       onChangeText={setlastName}
                       placeholderTextColor="#000"
                       keyboardType="default"
-                    />
+                    /> */}
                     <TextInput
                       onBlur={() => setisactivefullname(false)}
                       onFocus={() => setisactivefullname(true)}
@@ -566,13 +588,13 @@ const RegistrationScreen = () => {
                       keyboardType="default"
                     />
                     {passwordError ? (
-         <Text
-         style={{
-           color: 'red',
-           fontSize: 12,
-           bottom: SCREEN_HEIGHT * 0.045,
-           left: SCREEN_HEIGHT * 0.02,
-         }}>
+                      <Text
+                        style={{
+                          color: 'red',
+                          fontSize: 12,
+                          bottom: SCREEN_HEIGHT * 0.045,
+                          left: SCREEN_HEIGHT * 0.02,
+                        }}>
                         {passwordError}
                       </Text>
                     ) : null}
@@ -681,7 +703,7 @@ const RegistrationScreen = () => {
                       <TouchableOpacity
                         style={styles.loginButton}
                         onPress={handleVerify}>
-                        <Text style={styles.loginButtonText}>SignUp</Text>
+                        <Text style={styles.loginButtonText}>Sign Up</Text>
                       </TouchableOpacity>
                     </LinearGradient>
                   ) : (
@@ -720,7 +742,8 @@ const RegistrationScreen = () => {
             </View>
           </LinearGradient>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAvoidingView>)}
+   
     </Reanimatable.View>
   );
 };
@@ -729,7 +752,7 @@ export default RegistrationScreen;
 
 const styles = StyleSheet.create({
   MainContainer: {
-    flex:1
+    flex: 1,
   },
   LowerContainer: {
     backgroundColor: '#fff',
@@ -744,7 +767,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: SCREEN_HEIGHT * 0.05,
     zIndex: 1,
     backgroundColor: '#fff',
-    flex:1,
+    flex: 1,
   },
   CompanyTittle: {
     fontFamily: 'Nunito-Bold',
