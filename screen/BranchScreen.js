@@ -10,7 +10,7 @@ import {
   Dimensions
 } from 'react-native';
 
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation ,CommonActions} from '@react-navigation/native';
 import * as Animatable from 'react-native-animatable';
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -18,7 +18,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height
 
 
 
-const OnBoarding = () => {
+const BranchScreen = () => {
   const navigation = useNavigation()
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -38,8 +38,8 @@ const OnBoarding = () => {
       if (item.isAddCard) {
         return (
           
-          <TouchableOpacity style={styles.addCard} onPress={()=>navigation.navigate("AddNewStore")}>
-            <Text style={styles.addCardText}>+ Add New Store </Text>
+          <TouchableOpacity style={styles.addCard} onPress={()=>navigation.navigate("BranchFormStore")}>
+            <Text style={styles.addCardText}>+ Add New Store</Text>
           </TouchableOpacity>
         );
       }
@@ -135,9 +135,8 @@ const OnBoarding = () => {
             <Text style={styles.cardTitle}>{item.name}</Text>
             <Text style={styles.cardLocation}>{item.location}</Text>
           </View>
-
           <View style={{flexDirection:"row",display:"flex",marginTop:SCREEN_HEIGHT*0.03,left:SCREEN_HEIGHT*0.2,backgroundColor:"#4756ca",alignItems:"center",borderRadius:SCREEN_HEIGHT*0.03,height:SCREEN_HEIGHT*0.04,width:SCREEN_HEIGHT*0.2}}>
-              <TouchableOpacity onPress={()=>navigation.navigate('MainApp')}>
+              <TouchableOpacity onPress={()=>navigation.replace("MainApp")}>
                 <Text style={{fontFamily:"Nunito-Regular",left:7,color:'#fff'}}>View Store </Text>
               </TouchableOpacity>
             </View>
@@ -222,4 +221,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OnBoarding;
+export default BranchScreen;

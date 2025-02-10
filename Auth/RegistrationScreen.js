@@ -74,21 +74,21 @@ const RegistrationScreen = () => {
 
   const [errorMessage, setErrorMessage] = useState('');
 
-  const validateUsername = text => {
-    // Regular expression for validation
-    const usernameRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  // const validateUsername = text => {
+  //   // Regular expression for validation
+  //   const usernameRegex =
+  //     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    if (usernameRegex.test(text)) {
-      setErrorMessage(
-        'Username must be at least 8 characters long, include a special character, uppercase, lowercase, and a number.',
-      );
-    } else {
-      setErrorMessage('');
-    }
+  //   if (usernameRegex.test(text)) {
+  //     setErrorMessage(
+  //       'Username must be at least 8 characters long, include a special character, uppercase, lowercase, and a number.',
+  //     );
+  //   } else {
+  //     setErrorMessage('');
+  //   }
 
-    setusername(text);
-  };
+  //   setusername(text);
+  // };
 
   useEffect(() => {
     // Or set a specific startFrame and endFrame with:
@@ -105,8 +105,6 @@ const RegistrationScreen = () => {
       });
       return;
     }
-
-    // Check if passwords match
     if (password !== confirmpassword) {
       Toast.show({
         type: 'error',
@@ -115,8 +113,6 @@ const RegistrationScreen = () => {
       });
       return;
     }
-
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Toast.show({
@@ -126,18 +122,18 @@ const RegistrationScreen = () => {
       });
       return;
     }
-
     try {
       console.log('Sending login request...');
       const response = await axios.post(
         'https://britepharma-dev.bliptyn.com/api/v1/auth/register',
         {
           email: email.trim(),
-          password: password,
-          firstName: firstName,
-          lastName: lastName,
-          fullName: firstName +  lastName,
-          username:email
+password: password,
+firstName: firstName,
+lastName: lastName,
+fullName: `${firstName} ${lastName}`.trim(),
+username: email.trim(),
+
         },
       );
 
@@ -277,34 +273,32 @@ const RegistrationScreen = () => {
       
         email: email.trim(),
         password: password,
-        fullName: fullName,
+        fullName: `${firstName} ${lastName}`,
         username: email.trim(),
       });
   
       console.log('API Response:', response.data);
   
       if (response.status === 200) {
-        // Persist user data
         const userData = {
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          email: email.trim(),
+          email: email,
           password: password,
-          fullName: "",
-          username: email.trim(),
+          fullName: `${firstName} ${lastName}`,
+          username: email,
+          
         };
-  
         await AsyncStorage.setItem('userData', JSON.stringify(userData));
-  
         Toast.show({
           type: 'success',
           text1: 'Registration Successful',
           text2: 'Welcome to the app!',
         });
-  
         console.log('Navigating to OnBoarding...');
         setisvisiable(false);
-        navigation.replace('OnBoarding');
+        navigation.reset({
+          index:1,
+          routeNames:"OnBoarding"
+        })
       } else {
         console.log('Registration failed with status:', response.status);
         Alert.alert('Registration Failed', 'An error occurred. Please try again.');
@@ -326,7 +320,7 @@ const RegistrationScreen = () => {
   const validatePassword = text => {
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(text)) {
+    if (passwordRegex.test(text)) {
       setPasswordError(
         'Password must be at least 8 characters, include a special character, uppercase, lowercase, and a number.',
       );
@@ -481,7 +475,7 @@ const RegistrationScreen = () => {
                       marginBottom: SCREEN_HEIGHT * 0.05,
                       top: SCREEN_HEIGHT * 0.05,
                     }}>
-                    <TextInput
+                    {/* <TextInput
                       onBlur={() => setisusernameactive(false)}
                       onFocus={() => setisusernameactive(true)}
                       style={[
@@ -507,9 +501,9 @@ const RegistrationScreen = () => {
                         }}>
                         {errorMessage}
                       </Text>
-                    ) : null}
+                    ) : null} */}
 
-                    {/* <TextInput
+                    <TextInput
                       onBlur={() => setisactivefirstname(false)}
                       onFocus={() => setisactivefirstname(true)}
                       style={[
@@ -540,8 +534,8 @@ const RegistrationScreen = () => {
                       onChangeText={setlastName}
                       placeholderTextColor="#000"
                       keyboardType="default"
-                    /> */}
-                    <TextInput
+                    />
+                    {/* <TextInput
                       onBlur={() => setisactivefullname(false)}
                       onFocus={() => setisactivefullname(true)}
                       style={[
@@ -556,7 +550,7 @@ const RegistrationScreen = () => {
                       onChangeText={setfullName}
                       placeholderTextColor="#000"
                       keyboardType="default"
-                    />
+                    /> */}
                     <TextInput
                       onBlur={() => setisActiveemail(false)}
                       onFocus={() => setisActiveemail(true)}

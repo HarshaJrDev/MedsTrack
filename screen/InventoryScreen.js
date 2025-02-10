@@ -16,6 +16,8 @@ import {TextInput, DefaultTheme} from 'react-native-paper';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/MaterialIcons'; 
+import moment from "moment";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -39,7 +41,9 @@ const InventoryScreen = () => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [otherCategory, setOtherCategory] = useState('');
   const [isDatePickerExpiryVisible, setisDatePickerExpiryVisible] =
+
     useState(false);
+
   const [newItem, setNewItem] = useState({
     name: '',
     stock: '',
@@ -71,6 +75,7 @@ const InventoryScreen = () => {
   ];
 
   const navigation = useNavigation();
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const filteredInventory = inventory.filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -164,8 +169,8 @@ const InventoryScreen = () => {
     setIsModalOpen(false);
   };
 
-  const handleDateConfirm = date => {
-    setNewItem({...newItem, expiryDate: date.toDateString()});
+  const handleDateConfirm = (date) => {
+    setNewItem({ ...newItem, expiryDate: moment(date).format("DD-MM-YYYY") });
     hideDatePicker();
   };
   const handleDateConfirmExpiry = date => {
@@ -285,7 +290,7 @@ const InventoryScreen = () => {
               />
 
               <View
-                style={{flexDirection: 'row', columnGap: SCREEN_HEIGHT * 0.04}}>
+                style={{flexDirection: 'row', columnGap: SCREEN_HEIGHT * 0.02}}>
                 <TextInput
                   mode="outlined"
                   theme={customTheme}
@@ -343,13 +348,12 @@ const InventoryScreen = () => {
                 keyboardType="numeric"
               />
 
-              <TouchableOpacity>
-                <Text
-                  onPress={() => setIsModalOpen(true)}
-                  style={styles.inputLabel}>
-                  Category <Text style={{color: 'red'}}>*</Text>
-                </Text>
-              </TouchableOpacity>
+<TouchableOpacity onPress={() => setIsModalOpen(true)} style={styles.categoryContainer}>
+  <Text style={styles.inputLabel}>
+    Category <Text style={{ color: 'red' }}>*</Text>
+  </Text>
+  <Icon name="arrow-drop-down" size={24} color="#000" />
+</TouchableOpacity>
 
               <View style={{}}>
                 {selectedCategory.type === 'Others' && (
@@ -365,7 +369,7 @@ const InventoryScreen = () => {
 
                 {selectedCategory.type &&
                   selectedCategory.type !== 'Others' && (
-                    <View style={{}}>
+                    <View style={{marginTop:10}}>
                       <Text
                         style={{
                           fontSize: 16,
@@ -522,6 +526,7 @@ const InventoryScreen = () => {
 
       <KeyboardAvoidingView behavior="padding">
         <DateTimePickerModal
+         date={selectedDate}
           isVisible={isDatePickerVisible}
           mode="date"
           onConfirm={handleDateConfirm}
@@ -529,12 +534,7 @@ const InventoryScreen = () => {
         />
       </KeyboardAvoidingView>
 
-      <DateTimePickerModal
-        isVisible={isDatePickerExpiryVisible}
-        mode="date"
-        onConfirm={handleDateConfirmExpiry}
-        onCancel={hideDatePickerExpiry}
-      />
+   
     </View>
   );
 };
@@ -702,5 +702,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
+  categoryContainer: {
+    flexDirection: 'row',  // Aligns text and icon in a row
+    alignItems: 'center',  // Centers them vertically
+    justifyContent: 'space-between',  // Spaces text and icon apart
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 5,
+    backgroundColor: 'white',
+  },
+ 
 });
 export default InventoryScreen;

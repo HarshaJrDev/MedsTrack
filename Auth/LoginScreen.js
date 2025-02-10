@@ -33,6 +33,8 @@ import {
   UIActivityIndicator,
   WaveIndicator,
 } from 'react-native-indicators';
+
+import { AppContext } from "../Context/AppContext";
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -61,6 +63,8 @@ const LoginScreen = () => {
   const [isUsernameValid, setIsUsernameValid] = useState(null); // null: no validation, true: valid, false: invalid
   const [isEmailValid, setIsEmailValid] = useState(null);
   const [isPasswordValid, setIsPasswordValid] = useState(null);
+  const { setAccessToken } = React.useContext(AppContext);
+  
   const [isLoading,setislodading]=useState(false)
   const inputRefs = useRef([]);
 
@@ -98,108 +102,118 @@ const LoginScreen = () => {
   }, []);
 
    const validatePassword = text => {
-     const passwordRegex =
-       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-     if (passwordRegex.test(text)) {
-       setIsPasswordValid(true);
-       setPasswordError(
-         'Password must be at least 8 characters, include a special character, uppercase, lowercase, and a number.',
-       );
-     } else {
-       setPasswordError('');
-       setIsPasswordValid(false);
-     }
-     setPassword(text);
-   };
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (passwordRegex.test(text)) {
+         setIsPasswordValid(false);
+        // setPasswordError(
+        //   'Password must be at least 8 characters, include a special character, uppercase, lowercase, and a number.',
+        // );
+      } else {
+        setPasswordError('');
+        // setIsPasswordValid(false);
+      }
+      setPassword(text);
+    };
 
   
-   const handleLoginWithEmail = async () => {
-    console.log('Starting handleLoginWithEmail...');
-  
-    const trimmedEmail = email?.trim();
-    const trimmedPassword = password?.trim();
-  
-    if (!trimmedEmail || !trimmedPassword) {
-      console.log('Missing fields:', { email, password });
-      Toast.show({
-        type: 'error',
-        text1: 'Missing Information',
-        text2: 'All fields are required.',
-      });
-      return;
-    }
-  
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
-      console.log('Invalid email format:', trimmedEmail);
-      Toast.show({
-        type: 'error',
-        text1: 'Invalid Email',
-        text2: 'Please enter a valid email address.',
-      });
-      return;
-    }
-  
-    if (trimmedPassword.length < 6) {
-      console.log('Weak password');
-      Toast.show({
-        type: 'error',
-        text1: 'Weak Password',
-        text2: 'Password must be at least 6 characters long.',
-      });
-      return;
-    }
-
-    // Show loader before API call
-    setislodading(true);
-    setisvisiable(true);
-
-    try {
-      console.log('Sending registration request...');
-      
-      const response = await axios.post('https://britepharma-dev.bliptyn.com/api/v1/auth/login', {
-        email: trimmedEmail,
-        password: trimmedPassword,
-        username: email
-      });
-
-      console.log('API Response:', response.data);
-
-      if (response.status === 200) {
-        console.log('Registration successful:', response.data);
-
-        const userData = {
+    const handleLoginWithEmail = async () => {
+      console.log("Starting handleLoginWithEmail...");
+    
+      const trimmedEmail = email?.trim();
+      const trimmedPassword = password?.trim();
+    
+      if (!trimmedEmail || !trimmedPassword) {
+        console.log("Missing fields:", { email, password });
+        Toast.show({
+          type: "error",
+          text1: "Missing Information",
+          text2: "All fields are required.",
+        });
+        return;
+      }
+    
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(trimmedEmail)) {
+        console.log("Invalid email format:", trimmedEmail);
+        Toast.show({
+          type: "error",
+          text1: "Invalid Email",
+          text2: "Please enter a valid email address.",
+        });
+        return;
+      }
+    
+      if (trimmedPassword.length < 6) {
+        console.log("Weak password");
+        Toast.show({
+          type: "error",
+          text1: "Weak Password",
+          text2: "Password must be at least 6 characters long.",
+        });
+        return;
+      }
+    
+      // Show loader before API call
+      setislodading(true);
+      setisvisiable(true);
+    
+      try {
+        console.log("Sending login request...");
+        
+        const response = await axios.post(LOG_API, {
           email: trimmedEmail,
           password: trimmedPassword,
-          username: email
-        };
-
-        console.log('Saving user data to AsyncStorage:', userData);
-        await AsyncStorage.setItem('userData', JSON.stringify(userData));
-
-        Toast.show({
-          type: 'success',
-          text1: 'Registration Successful',
-          text2: 'Welcome to the app!',
+          username: email,
         });
-
-        console.log('Navigating to AddProduct...');
-        navigation.replace('OnBoarding');
-      } else {
-        console.log('Registration failed with status:', response.status);
-        Alert.alert('Registration Failed', 'An error occurred. Please try again.');
+    
+        console.log("API Response:", response.data);
+    
+        if (response.status === 200) {
+          console.log("Login successful:", response.data);
+    
+          const { accessToken, refreshToken } = response.data;
+    
+          if (!accessToken || !refreshToken) {
+            throw new Error("Missing access or refresh token from API response.");
+          }
+    
+          const userData = {
+            email: trimmedEmail,
+            username: trimmedEmail,
+            accessToken,
+            refreshToken,
+          };
+    
+          console.log("Saving user data to AsyncStorage:", userData);
+          await AsyncStorage.setItem("userData", JSON.stringify(userData));
+    
+          // ✅ Store Access Token in Global Context
+          setAccessToken(accessToken);
+    
+          Toast.show({
+            type: "success",
+            text1: "Login Successful",
+            text2: "Welcome back!",
+          });
+    
+          console.log("Navigating to PharmacyView...");
+          navigation.replace("PharmacyView");
+        } else {
+          console.log("Login failed with status:", response.status);
+          Alert.alert("Login Failed", "Invalid email or password.");
+        }
+      } catch (error) {
+        console.error("Error during login:", error.response?.data || error.message);
+        const errorMessage =
+          error.response?.data?.message || "Something went wrong. Please try again later.";
+        Alert.alert("Error", errorMessage);
+      } finally {
+        // Hide loader after API call completes
+        setislodading(false);
+        setisvisiable(false);
       }
-    } catch (error) {
-      console.error('Error during registration:', error.response?.data || error.message);
-      const errorMessage =
-        error.response?.data?.message || 'Something went wrong. Please try again later.';
-      Alert.alert('Error', errorMessage);
-    } finally {
-      // Hide loader after API call completes
-      setislodading(false);
-      setisvisiable(false);
-    }
-  };
+    };
 
   
 
@@ -350,7 +364,7 @@ const LoginScreen = () => {
 
       setTimeout(() => {
         console.log('Replacing navigation to OnBoarding...');
-        navigation.replace('OnBoarding');
+        navigation.replace('PharmacyView');
       }, 100);
     }
   };
@@ -371,7 +385,7 @@ const LoginScreen = () => {
                 </View>) :(
                    <KeyboardAvoidingView
                    style={[styles.MainContainer]}
-                   behavior={Platform.OS === 'android' ? 'padding' : undefined}>
+                   behavior={Platform.OS === 'android' ? 'padding' : "height"}>
                    <ScrollView showsVerticalScrollIndicator={false}>
                      <LinearGradient
                        style={styles.MainContainer}
@@ -686,7 +700,7 @@ const LoginScreen = () => {
                keyboardType="default"
              />
            
-             <View style={[styles.iconContainer,{top:SCREEN_HEIGHT*0.04}]}>
+             {/* <View style={[styles.iconContainer,{top:SCREEN_HEIGHT*0.04}]}>
                {isPasswordValid === false && (
                  <Ionicons
                    name="checkmark-circle"
@@ -703,7 +717,7 @@ const LoginScreen = () => {
                    style={styles.icon}
                  />
                )}
-             </View>
+             </View> */}
            
              {passwordError ? (
                <Text

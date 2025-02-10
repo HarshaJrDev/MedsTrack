@@ -20,10 +20,17 @@ import SplashScreen from './Auth/SplashScreen';
 import RegistrationScreen from './Auth/RegistrationScreen';
 import ForgotPassword from './Auth/ForgotScreen';
 import VerifyOtp from './Auth/VerifyOtp';
-import AddNewStore from './screen/AddNewStore';
-import OnBoarding from './screen/OnBoarding';
 import SearchScreen from './screen/SearchScreen';
 import AddProduct from './screen/AddProduct';
+import PharmacyDetails from './screen/PharmacyForm';
+import PharmacyView from './screen/PharmacyScreen';
+import LocationSearch from './screen/GetLocationPharmacy';
+import LocationConfirmation from './screen/PharmacyLocationConfirmation';
+import { LocationProvider } from './Context/AppContext';
+import BranchFormStore from './screen/BranchForm';
+import BranchScreen from './screen/BranchScreen';
+import BranchLocationConfirmation from './screen/BranchLocationConfirmation';
+import GetLocationBranch from './screen/GetLocationBranch';
 
 const rnBiometrics = new ReactNativeBiometrics();
 
@@ -136,27 +143,38 @@ const AuthNavigator = () => (
   <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SplashScreen" component={SplashScreen} />
     <Stack.Screen name="MainApp" component={DrawerNavigator} options={{ headerShown: false }} />
-    <Stack.Screen name="OnBoarding" component={OnBoarding} />
+    <Stack.Screen name="BranchScreen" component={BranchScreen} options={{headerShown:false}} />
     <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login' }} />
     <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ title: 'Register' }} />
     <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{ title: 'Forgot Password' }} />
     <Stack.Screen name="VerifyOtp" component={VerifyOtp} options={{ title: 'Verify OTP' }} />
-    <Stack.Screen name="AddNewStore" component={AddNewStore} options={{ title: 'Add New Store' }} />
+    <Stack.Screen name="BranchFormStore" component={BranchFormStore} options={{ title: 'Add New Store' }} />
     <Stack.Screen name="AddProduct" component={AddProduct} options={{ headerTitleStyle: { fontSize: 15 } }} />
+    <Stack.Screen name="LocationSearch" component={LocationSearch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="PharmacyDetails" component={PharmacyDetails} options={{ headerTitleStyle: { fontSize: 15 } ,headerShown: false}} />
+    <Stack.Screen name="PharmacyView" component={PharmacyView} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="LocationConfirmation" component={LocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
   </Stack.Navigator>
 );
 
 const HomeNavigator = () => (
   <Stack.Navigator initialRouteName="MainApp">
-
     <Stack.Screen name="MainApp" component={DrawerNavigator} options={{ headerShown: false }} />
     <Stack.Screen name="Inventory" component={InventoryScreen} options={{ headerShown: true, title: 'Inventory' }} />
     <Stack.Screen name="SearchScreen" component={SearchScreen} options={{ headerShown: true, headerTitleStyle: { fontSize: 15 } }} />
     <Stack.Screen name="AddProduct" component={AddProduct} options={{ headerShown: false, headerTitleStyle: { fontSize: 15 } }} />
     <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ title: 'Register' }} />
-    <Stack.Screen name="OnBoarding" component={OnBoarding} options={{headerShown:false}} />
+    <Stack.Screen name="BranchScreen" component={BranchScreen} options={{headerShown:false}} />
     <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login',headerShown: false }} />
-    <Stack.Screen name="AddNewStore" component={AddNewStore} options={{ title: 'Add New Store' }} />
+    <Stack.Screen name="BranchFormStore" component={BranchFormStore} options={{ title: 'Add New Store' }} />
+    <Stack.Screen name="PharmacyDetails" component={PharmacyDetails} options={{ headerTitleStyle: { fontSize: 15 } ,headerShown: false}} />
+    <Stack.Screen name="PharmacyView" component={PharmacyView} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="LocationSearch" component={LocationSearch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="LocationConfirmation" component={LocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
   </Stack.Navigator>
 );
 
@@ -193,19 +211,24 @@ const App = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
+         <Stack.Screen name="AddNewStore" component={BranchFormStore} options={{ title: 'Add New Store' }} />
         <ActivityIndicator size="large" color="#4756ca" />
       </View>
     );
   }
 
   return (
-    <PaperProvider>
+    <LocationProvider>
+       <PaperProvider>
       <SafeAreaProvider>
         <NavigationContainer>
           {isLogin ? <HomeNavigator /> : <AuthNavigator />}
         </NavigationContainer>
       </SafeAreaProvider>
     </PaperProvider>
+
+    </LocationProvider>
+   
   );
 };
 
