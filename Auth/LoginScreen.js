@@ -35,7 +35,6 @@ import { LOG_API} from '@env';
 const LoginScreen = () => {
   console.log("is enter Login Screen");
   const [isActivepassword, setisActivepassword] = useState(false);
-  const [isusernameactive, setisusernameactive] = useState('');
   const navigation = useNavigation();
   const animationRef = useRef(null);
   const [isvisiable, setisvisiable] = useState(false);
@@ -57,7 +56,7 @@ const LoginScreen = () => {
   const [isPasswordValid, setIsPasswordValid] = useState(null);
   const { setAccessToken } = React.useContext(AppContext);
   
-  const [isLoading,setislodading]=useState(false)
+  const [isLoading,setisloading]=useState(false)
   const inputRefs = useRef([]);
 
   const validateUsername = text => {
@@ -145,10 +144,6 @@ const LoginScreen = () => {
         return;
       }
     
-      // Show loader before API call
-      setislodading(true);
-      setisvisiable(true);
-    
       try {
         console.log("Sending login request...");
     
@@ -162,6 +157,10 @@ const LoginScreen = () => {
     
         if (response.status === 200) {
           console.log("Login successful:", response.data);
+    
+          // ✅ Only show loader if credentials are correct
+          setisloading(true);
+          setisvisiable(true);
     
           const { accessToken, refreshToken } = response.data;
     
@@ -190,36 +189,40 @@ const LoginScreen = () => {
     
           console.log("Navigating to PharmacyView...");
           navigation.replace("PharmacyView");
+    
+          // ✅ Hide loader after navigation
+          setisloading(false);
+          setisvisiable(false);
         }
       } catch (error) {
         console.error("Error during login:", error.response?.data || error.message);
     
         const statusCode = error.response?.status;
-        const errorMessage = error.response?.data?.message || "Something went wrong. Please try again later.";
+        const errorMessage =
+          error.response?.data?.message ||
+          "Something went wrong. Please try again later.";
     
-        // Handle 401 Unauthorized Error (Invalid Credentials)
+        // ✅ If credentials are wrong, don't show loader
         if (statusCode === 401) {
+          console.log("Invalid credentials provided.");
           Toast.show({
             type: "error",
             text1: "Login Failed",
             text2: "Invalid email or password. Please try again.",
           });
-          console.log("Invalid credentials provided.");
-          return;
+          return; // 🚨 Exit early, don't show loader
         }
     
-        // Generic error handling for other cases
         Toast.show({
           type: "error",
           text1: "Login Failed",
           text2: errorMessage,
         });
-      } finally {
-        // Hide loader after API call completes
-        setislodading(false);
-        setisvisiable(false);
       }
     };
+    
+    
+    
     
     
     
@@ -392,10 +395,12 @@ const LoginScreen = () => {
               
                   <DotIndicator size={8} color="#4756ca" />
                 </View>) :(
-                   <KeyboardAvoidingView
-                   style={[styles.MainContainer]}
-                   behavior={Platform.OS === 'android' ? 'padding' : "height"}>
-                   <ScrollView showsVerticalScrollIndicator={false}>
+                  <KeyboardAvoidingView
+                  style={styles.MainContainer}
+                  behavior={Platform.OS === 'android' ? 'height' : 'position'}
+                 >
+      
+                   <ScrollView    style={styles.MainContainer} showsVerticalScrollIndicator={false}>
                      <LinearGradient
                        style={styles.MainContainer}
                        colors={['#4756ca', '#616dc7']}>
@@ -432,9 +437,7 @@ const LoginScreen = () => {
                            </LinearGradient>
                          </TouchableOpacity>
                        </View>
-                       <View style={{bottom: SCREEN_HEIGHT * 0.02}}>
-                         <Toast />
-                       </View>
+                    
                        <View style={styles.CompanyTittleContainer}>
                          <Text style={styles.CompanyTittle}>MedsTrack</Text>
                          <View>
@@ -444,17 +447,22 @@ const LoginScreen = () => {
                            />
                          </View>
                        </View>
-            
+
+                   
+       
+                    
                        <LinearGradient
                          colors={['#AAB3E5', '#4752ca']}
                          style={styles.LowerContainer}></LinearGradient>
-           
-                       <View style={styles.UpperContainer}>
+
+                    
+                       <View style={[styles.UpperContainer]}>
                          <View
                            style={{
                              justifyContent: 'center',
                              alignItems: 'center',
-                             marginTop: SCREEN_HEIGHT * 0.03,
+                             marginTop: SCREEN_HEIGHT * 0.05,
+       
                            }}>
                            <Text
                              style={{
@@ -624,23 +632,7 @@ const LoginScreen = () => {
                          ) : (
                            <>
                          <View>
-             {/* <TextInput
-               onBlur={() => setisusernameactive(false)}
-               onFocus={() => setisusernameactive(true)}
-               style={[
-                 styles.Whiteinput,
-                 {
-                   borderColor: isusernameactive ? '#4752ca' : '#fff',
-                   top: -SCREEN_HEIGHT * 0.04,
-                   paddingRight: 30, // Add padding to make space for the icon
-                 },
-               ]}
-               placeholder="User name"
-               value={username}
-               onChangeText={validateUsername}
-               placeholderTextColor="#000"
-               keyboardType="default"
-             /> */}
+       
            
              <View style={styles.iconContainer}>
                {isUsernameValid === false && (
@@ -708,25 +700,7 @@ const LoginScreen = () => {
                secureTextEntry
                keyboardType="default"
              />
-           
-             {/* <View style={[styles.iconContainer,{top:SCREEN_HEIGHT*0.04}]}>
-               {isPasswordValid === false && (
-                 <Ionicons
-                   name="checkmark-circle"
-                   size={20}
-                   color="#4752ca"
-                   style={styles.icon}
-                 />
-               )}
-               {isPasswordValid === true && (
-                 <Ionicons
-                   name="close-circle"
-                   size={20}
-                   color="red"
-                   style={styles.icon}
-                 />
-               )}
-             </View> */}
+  
            
              {passwordError ? (
                <Text
@@ -758,6 +732,9 @@ const LoginScreen = () => {
                            </Text>
                            
                          )}
+                                  <>
+                         <Toast />
+                         </>
                        </View>
                        
                        <Modal animationType="slide" transparent visible={isvisiable}>
@@ -815,13 +792,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: SCREEN_HEIGHT * 0.05,
   },
   UpperContainer: {
-    marginBottom: -SCREEN_HEIGHT * 0.05,
     borderTopLeftRadius: SCREEN_HEIGHT * 0.05,
     borderTopRightRadius: SCREEN_HEIGHT * 0.05,
-    zIndex: 1,
     backgroundColor: '#fff',
-    height: SCREEN_HEIGHT * 0.8,
-    bottom: SCREEN_HEIGHT * 0.03,
+    height:SCREEN_HEIGHT * 0.65,
+    zIndex:1,
+    marginTop:-SCREEN_HEIGHT * 0.03,
   },
   CompanyTittle: {
     fontFamily: 'Nunito-Bold',

@@ -332,7 +332,7 @@ const InventoryScreen = () => {
                 <TextInput
                   mode="outlined"
                   theme={customTheme}
-                  label="Number of Packs"
+                  label="No of Packs"
                   style={styles.Packinputs}
                   value={newItem.numberOfPacks}
                   onChangeText={text =>
@@ -690,8 +690,7 @@ const styles = StyleSheet.create({
   },
   Packinputs: {
     marginBottom: 15,
-
-    width: SCREEN_HEIGHT * 0.19,
+    width: SCREEN_HEIGHT * 0.172,
   },
   inputLabel: {
     fontSize: 14,

@@ -1,5 +1,5 @@
 // src/screens/StaffManagementScreen.js
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import RoleManagement from '../types/RoleManagement';
 import ActivityLog from '../components/ActivityLog';
-import { ROLES, PERMISSIONS } from '../types/staffTypes';
+import {ROLES, PERMISSIONS} from '../types/staffTypes';
 
 // Sample staff data
 const initialStaff = [
@@ -54,16 +54,19 @@ const StaffManagementScreen = () => {
 
   // Filtering and search logic
   const filteredStaff = staff.filter(member => {
-    const matchesSearch = (
+    const matchesSearch =
       member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+      member.email.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (activeFilter === 'all') return matchesSearch;
-    if (activeFilter === 'active') return matchesSearch && member.status === 'active';
-    if (activeFilter === 'inactive') return matchesSearch && member.status === 'inactive';
-    return matchesSearch && member.role.toLowerCase() === activeFilter.toLowerCase();
+    if (activeFilter === 'active')
+      return matchesSearch && member.status === 'active';
+    if (activeFilter === 'inactive')
+      return matchesSearch && member.status === 'inactive';
+    return (
+      matchesSearch && member.role.toLowerCase() === activeFilter.toLowerCase()
+    );
   });
 
   // Handler functions
@@ -89,39 +92,49 @@ const StaffManagementScreen = () => {
     });
   };
 
-  const handleStatusChange = (staffId) => {
-    setStaff(staff.map(member =>
-      member.id === staffId
-        ? { ...member, status: member.status === 'active' ? 'inactive' : 'active' }
-        : member
-    ));
+  const handleStatusChange = staffId => {
+    setStaff(
+      staff.map(member =>
+        member.id === staffId
+          ? {
+              ...member,
+              status: member.status === 'active' ? 'inactive' : 'active',
+            }
+          : member,
+      ),
+    );
   };
 
-  const handleRoleManagement = (staffMember) => {
+  const handleRoleManagement = staffMember => {
     setSelectedStaff(staffMember);
     setRoleModalVisible(true);
   };
 
-  const handleViewActivity = (staffId) => {
+  const handleViewActivity = staffId => {
     setSelectedStaffId(staffId);
     setActivityLogVisible(true);
   };
 
-  const handleRoleUpdate = ({ role, permissions }) => {
-    setStaff(staff.map(member =>
-      member.id === selectedStaff?.id
-        ? { ...member, role, permissions }
-        : member
-    ));
+  const handleRoleUpdate = ({role, permissions}) => {
+    setStaff(
+      staff.map(member =>
+        member.id === selectedStaff?.id
+          ? {...member, role, permissions}
+          : member,
+      ),
+    );
     setRoleModalVisible(false);
   };
 
   // Component for staff statistics
   const StaffStats = () => {
     const stats = [
-      { label: 'Total Staff', value: staff.length },
-      { label: 'Active', value: staff.filter(s => s.status === 'active').length },
-      { label: 'Inactive', value: staff.filter(s => s.status === 'inactive').length }
+      {label: 'Total Staff', value: staff.length},
+      {label: 'Active', value: staff.filter(s => s.status === 'active').length},
+      {
+        label: 'Inactive',
+        value: staff.filter(s => s.status === 'inactive').length,
+      },
     ];
 
     return (
@@ -139,34 +152,33 @@ const StaffManagementScreen = () => {
   // Component for filters
   const StaffFilters = () => {
     const filters = [
-      { id: 'all', label: 'All' },
-      { id: 'active', label: 'Active' },
-      { id: 'inactive', label: 'Inactive' },
+      {id: 'all', label: 'All'},
+      {id: 'active', label: 'Active'},
+      {id: 'inactive', label: 'Inactive'},
       ...Object.values(ROLES).map(role => ({
         id: role,
-        label: role.charAt(0).toUpperCase() + role.slice(1)
-      }))
+        label: role.charAt(0).toUpperCase() + role.slice(1),
+      })),
     ];
 
     return (
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.filtersContainer}
-      >
+        style={styles.filtersContainer}>
         {filters.map(filter => (
           <TouchableOpacity
             key={filter.id}
             style={[
               styles.filterButton,
-              activeFilter === filter.id && styles.activeFilter
+              activeFilter === filter.id && styles.activeFilter,
             ]}
-            onPress={() => setActiveFilter(filter.id)}
-          >
-            <Text style={[
-              styles.filterText,
-              activeFilter === filter.id && styles.activeFilterText
-            ]}>
+            onPress={() => setActiveFilter(filter.id)}>
+            <Text
+              style={[
+                styles.filterText,
+                activeFilter === filter.id && styles.activeFilterText,
+              ]}>
               {filter.label}
             </Text>
           </TouchableOpacity>
@@ -176,14 +188,15 @@ const StaffManagementScreen = () => {
   };
 
   // Component for staff card
-  const renderStaffItem = ({ item }) => (
+  const renderStaffItem = ({item}) => (
     <View style={styles.staffCard}>
       <View style={styles.staffHeader}>
         <Text style={styles.staffName}>{item.name}</Text>
-        <View style={[
-          styles.statusBadge,
-          { backgroundColor: item.status === 'active' ? '#51cf66' : '#ff6b6b' }
-        ]}>
+        <View
+          style={[
+            styles.statusBadge,
+            {backgroundColor: item.status === 'active' ? '#51cf66' : '#ff6b6b'},
+          ]}>
           <Text style={styles.statusText}>{item.status}</Text>
         </View>
       </View>
@@ -195,40 +208,36 @@ const StaffManagementScreen = () => {
       </View>
 
       <View style={styles.actionButtons}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[
             styles.actionButton,
-            { backgroundColor: item.status === 'active' ? '#ff6b6b' : '#51cf66' }
+            {backgroundColor: item.status === 'active' ? '#ff6b6b' : '#51cf66'},
           ]}
-          onPress={() => handleStatusChange(item.id)}
-        >
+          onPress={() => handleStatusChange(item.id)}>
           <Text style={styles.actionButtonText}>
             {item.status === 'active' ? 'Deactivate' : 'Activate'}
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionButton, styles.editButton]}
           onPress={() => {
             setSelectedStaff(item);
             setNewStaff(item);
             setModalVisible(true);
-          }}
-        >
+          }}>
           <Text style={styles.actionButtonText}>Edit</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.actionButton, { backgroundColor: '#ffd43b' }]}
-          onPress={() => handleRoleManagement(item)}
-        >
+        <TouchableOpacity
+          style={[styles.actionButton, {backgroundColor: '#ffd43b'}]}
+          onPress={() => handleRoleManagement(item)}>
           <Text style={styles.actionButtonText}>Manage Role</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.actionButton, { backgroundColor: '#2196F3' }]}
-          onPress={() => handleViewActivity(item.id)}
-        >
+        <TouchableOpacity
+          style={[styles.actionButton, {backgroundColor: '#2196F3'}]}
+          onPress={() => handleViewActivity(item.id)}>
           <Text style={styles.actionButtonText}>View Activity</Text>
         </TouchableOpacity>
       </View>
@@ -250,19 +259,17 @@ const StaffManagementScreen = () => {
           {searchQuery.length > 0 && (
             <TouchableOpacity
               style={styles.clearSearch}
-              onPress={() => setSearchQuery('')}
-            >
+              onPress={() => setSearchQuery('')}>
               <Text style={styles.clearSearchText}>✕</Text>
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.addButton}
           onPress={() => {
             setSelectedStaff(null);
             setModalVisible(true);
-          }}
-        >
+          }}>
           <Text style={styles.addButtonText}>+ Add Staff</Text>
         </TouchableOpacity>
       </View>
@@ -278,10 +285,9 @@ const StaffManagementScreen = () => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              {searchQuery 
+              {searchQuery
                 ? 'No staff members found matching your search'
-                : 'No staff members yet'
-              }
+                : 'No staff members yet'}
             </Text>
           </View>
         }
@@ -292,18 +298,16 @@ const StaffManagementScreen = () => {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
+        onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {selectedStaff ? 'Edit Staff Member' : 'Add New Staff'}
               </Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.closeModalButton}
-                onPress={() => setModalVisible(false)}
-              >
+                onPress={() => setModalVisible(false)}>
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -313,24 +317,24 @@ const StaffManagementScreen = () => {
                 style={styles.modalInput}
                 placeholder="Full Name *"
                 value={newStaff.name}
-                onChangeText={(text) => setNewStaff({...newStaff, name: text})}
+                onChangeText={text => setNewStaff({...newStaff, name: text})}
               />
 
               <View style={styles.roleSelectContainer}>
                 <Text style={styles.inputLabel}>Select Role *</Text>
-                {Object.values(ROLES).map((role) => (
+                {Object.values(ROLES).map(role => (
                   <TouchableOpacity
                     key={role}
                     style={[
                       styles.roleOption,
-                      newStaff.role === role && styles.selectedRoleOption
+                      newStaff.role === role && styles.selectedRoleOption,
                     ]}
-                    onPress={() => setNewStaff({...newStaff, role})}
-                  >
-                    <Text style={[
-                      styles.roleOptionText,
-                      newStaff.role === role && styles.selectedRoleOptionText
-                    ]}>
+                    onPress={() => setNewStaff({...newStaff, role})}>
+                    <Text
+                      style={[
+                        styles.roleOptionText,
+                        newStaff.role === role && styles.selectedRoleOptionText,
+                      ]}>
                       {role.charAt(0).toUpperCase() + role.slice(1)}
                     </Text>
                   </TouchableOpacity>
@@ -341,7 +345,7 @@ const StaffManagementScreen = () => {
                 style={styles.modalInput}
                 placeholder="Email *"
                 value={newStaff.email}
-                onChangeText={(text) => setNewStaff({...newStaff, email: text})}
+                onChangeText={text => setNewStaff({...newStaff, email: text})}
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
@@ -350,32 +354,37 @@ const StaffManagementScreen = () => {
                 style={styles.modalInput}
                 placeholder="Phone"
                 value={newStaff.phone}
-                onChangeText={(text) => setNewStaff({...newStaff, phone: text})}
+                onChangeText={text => setNewStaff({...newStaff, phone: text})}
                 keyboardType="phone-pad"
               />
 
               <View style={styles.modalButtons}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.modalButton, styles.cancelButton]}
-                  onPress={() => setModalVisible(false)}
-                >
+                  onPress={() => setModalVisible(false)}>
                   <Text style={styles.buttonText}>Cancel</Text>
                 </TouchableOpacity>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={[styles.modalButton, styles.saveButton]}
-                  onPress={selectedStaff ? 
-                    () => {
-                      setStaff(staff.map(member =>
-                        member.id === selectedStaff.id
-                          ? { ...newStaff, id: member.id, status: member.status }
-                          : member
-                      ));
-                      setModalVisible(false);
-                    }
-                    : handleAddStaff
-                  }
-                >
+                  onPress={
+                    selectedStaff
+                      ? () => {
+                          setStaff(
+                            staff.map(member =>
+                              member.id === selectedStaff.id
+                                ? {
+                                    ...newStaff,
+                                    id: member.id,
+                                    status: member.status,
+                                  }
+                                : member,
+                            ),
+                          );
+                          setModalVisible(false);
+                        }
+                      : handleAddStaff
+                  }>
                   <Text style={styles.buttonText}>
                     {selectedStaff ? 'Update' : 'Save'}
                   </Text>
@@ -457,6 +466,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
+    flex: 1,
   },
   staffName: {
     fontSize: 18,
@@ -480,23 +490,11 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  actionButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 5,
-    marginLeft: 10,
-  },
+
   editButton: {
     backgroundColor: '#2196F3',
   },
-  actionButtonText: {
-    color: '#fff',
-    fontWeight: '500',
-  },
+
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -659,6 +657,23 @@ const styles = StyleSheet.create({
   emptyText: {
     color: '#666',
     fontSize: 16,
+  },
+  actionButtons: {
+    flexDirection: 'row', // Arrange buttons in a row
+    justifyContent: 'space-between', // Distribute buttons evenly
+    alignItems: 'center', // Align buttons vertically
+    flexWrap: 'wrap', // Prevent overflow by wrapping if needed // Adjust spacing
+  },
+  actionButton: {
+    flex: 1, // Ensure equal width for buttons
+    marginHorizontal: 1, // Add spacing between buttons
+    paddingVertical: 8,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
 

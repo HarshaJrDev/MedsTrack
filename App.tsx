@@ -138,12 +138,12 @@ const DrawerNavigator = () => (
     <Drawer.Screen name="Dispense" component={DispenseScreen} options={{ title: 'Dispense' }} />
     <Drawer.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
     <Drawer.Screen name="StaffManagement" component={StaffManagementScreen} options={{ title: 'Staff Management' }} />
-    <Drawer.Screen name="SwitchBranchAndPharmacy" component={SwitchBranchAndPharmacy}/>
+    <Drawer.Screen name="SwitchBranchAndPharmacy" component={PharmacyView}/>
   </Drawer.Navigator>
 );
 
 const AuthNavigator = () => (
-  <Stack.Navigator initialRouteName="MainApp" screenOptions={{ headerShown: false }}>
+  <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SplashScreen" component={SplashScreen} />
     <Stack.Screen name="MainApp" component={DrawerNavigator} options={{ headerShown: false }} />
     <Stack.Screen name="BranchScreen" component={BranchScreen} options={{headerShown:false}} />
@@ -217,7 +217,6 @@ const App = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-         <Stack.Screen name="AddNewStore" component={BranchFormStore} options={{ title: 'Add New Store' }} />
         <ActivityIndicator size="large" color="#4756ca" />
       </View>
     );

@@ -5,6 +5,7 @@ import {
   FlatList,
   Dimensions,
   TouchableOpacity,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {
   TextInput,
@@ -81,7 +82,8 @@ const ProductForm = () => {
         visible={menuVisible}
         onDismiss={() => setMenuVisible(false)}
         anchor={
-          <LinearGradient
+          <TouchableWithoutFeedback onPress={() => setMenuVisible(true)}>
+                     <LinearGradient 
             style={{borderRadius: 4}}
             colors={['#4756ca', '#616dc7']}>
             <Button
@@ -94,10 +96,13 @@ const ProductForm = () => {
               }}
               mode="text"
               textColor="white"
-              onPress={() => setMenuVisible(true)}>
+              >
               {productForm || 'Select Product Form'}
             </Button>
           </LinearGradient>
+
+          </TouchableWithoutFeedback>
+ 
         }>
         <FlatList
           data={filteredProductForms}
@@ -154,7 +159,7 @@ const ProductForm = () => {
             alignItems: 'center',
             backgroundColor: '#fff',
             borderColor: '#888',
-            borderRadius: 8,
+            borderRadius: 3,
             borderWidth: 1,
             height: 50,
           }}>

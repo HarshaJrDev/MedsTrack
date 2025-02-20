@@ -44,9 +44,15 @@ const LocationConfirmation = () => {
         <TextInput label="Latitude" value={lat?.toString()} style={styles.input} mode="outlined" theme={customTheme} editable={false} />
         <TextInput label="Longitude" value={lon?.toString()} style={styles.input} mode="outlined" theme={customTheme} editable={false} />
 
-        <Button mode="contained" onPress={handleConfirm} style={styles.button}>
-          Confirm 
-        </Button>
+        <Button 
+  mode="contained" 
+  onPress={handleConfirm} 
+  style={styles.button} 
+  labelStyle={{ color: 'white' }}
+>
+  Confirm
+</Button>
+
       </View>
     </ScrollView>
   );
