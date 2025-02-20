@@ -26,7 +26,7 @@ import {
 import React, {useEffect, useRef, useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import {Image} from 'react-native-animatable';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, StackActions} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import * as Reanimatable from 'react-native-animatable';
 import 'react-native-gesture-handler';
@@ -34,18 +34,14 @@ import LottieView from 'lottie-react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { REG_API} from '@env';
+import {REG_API} from '@env';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-
 const RegistrationScreen = () => {
   const navigation = useNavigation();
   const animationRef = useRef(null);
-
-  console.log(REG_API);
-  
 
   const OTP_LENGTH = 6;
   const [confirmpassword, setconfirmpassword] = useState();
@@ -69,7 +65,7 @@ const RegistrationScreen = () => {
   const [fullName, setfullName] = useState('');
   const [isactivefullname, setisactivefullname] = useState('');
   const [passwordError, setPasswordError] = useState('');
-   const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const inputRefs = useRef([]);
 
   const [errorMessage, setErrorMessage] = useState('');
@@ -125,22 +121,19 @@ const RegistrationScreen = () => {
     try {
       console.log('Sending login request...');
       const response = await axios.post(
-        'https://britepharma-dev.bliptyn.com/api/v1/auth/register',
+        REG_API,
+
         {
           email: email.trim(),
-password: password,
-firstName: firstName,
-lastName: lastName,
-fullName: `${firstName} ${lastName}`.trim(),
-username: email.trim(),
-
+          password: password,
+          firstName: firstName,
+          lastName: lastName,
+          fullName: `${firstName} ${lastName}`.trim(),
+          username: email.trim(),
         },
       );
-
-      
-
       if (response.status === 200) {
-        console.log('API Response:', response);
+        console.log('API Response:', response.data);
         console.log('Login successful');
         Toast.show({
           type: 'success',
@@ -170,7 +163,10 @@ username: email.trim(),
 
       setTimeout(() => {
         console.log('Replacing navigation...');
-        navigation.replace('OnBoarding');
+        navigation.reset({
+          index: 0, // Set the index to the first screen
+          routes: [{name: 'PharmacyView'}], // Provide the correct route name inside an array
+        });
       }, 100);
     }
   };
@@ -236,8 +232,10 @@ username: email.trim(),
   };
   useEffect(() => {}, [navigation]);
 
+  //Main Signup Fucntion
+
   const handleVerify = async () => {
-    if (!email || !password || !confirmpassword) {
+    if (!email?.trim() || !password || !confirmpassword) {
       Toast.show({
         type: 'error',
         text1: 'Missing Information',
@@ -245,6 +243,7 @@ username: email.trim(),
       });
       return;
     }
+
     if (password !== confirmpassword) {
       Toast.show({
         type: 'error',
@@ -253,10 +252,10 @@ username: email.trim(),
       });
       return;
     }
-  
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (emailRegex.test(!email.trim())) {
+    if (!emailRegex.test(email.trim())) {
       Toast.show({
         type: 'error',
         text1: 'Invalid Email',
@@ -264,50 +263,58 @@ username: email.trim(),
       });
       return;
     }
-  
+
     try {
       setLoading(true); // Start loading
       console.log('Sending registration request...');
-      
+
       const response = await axios.post(REG_API, {
-      
         email: email.trim(),
         password: password,
         fullName: `${firstName} ${lastName}`,
         username: email.trim(),
       });
-  
+
       console.log('API Response:', response.data);
-  
+
       if (response.status === 200) {
         const userData = {
-          email: email,
+          email: email.trim(),
           password: password,
           fullName: `${firstName} ${lastName}`,
-          username: email,
-          
+          username: email.trim(),
         };
         await AsyncStorage.setItem('userData', JSON.stringify(userData));
+
         Toast.show({
           type: 'success',
           text1: 'Registration Successful',
           text2: 'Welcome to the app!',
         });
-        console.log('Navigating to OnBoarding...');
+
+        console.log('Navigating to PharmacyView...');
         setisvisiable(false);
         navigation.reset({
-          index:1,
-          routeNames:"OnBoarding"
-        })
+          index: 0,
+          routes: [{name: 'PharmacyView'}], // ✅ Wrap it in an array with an object
+          // Correct format
+        });
       } else {
         console.log('Registration failed with status:', response.status);
-        Alert.alert('Registration Failed', 'An error occurred. Please try again.');
+        Alert.alert(
+          'Registration Failed',
+          'An error occurred. Please try again.',
+        );
       }
     } catch (error) {
-      console.error('Error during registration:', error.response?.data || error.message);
-  
+      console.error(
+        'Error during registration:',
+        error.response?.data || error.message,
+      );
+
       const errorMessage =
-        error.response?.data?.message || 'Something went wrong. Please try again later.';
+        error.response?.data?.message ||
+        'Something went wrong. Please try again later.';
       Alert.alert('Error', errorMessage);
     } finally {
       console.log('Resetting visibility...');
@@ -315,15 +322,14 @@ username: email.trim(),
       setLoading(false); // Stop loading
     }
   };
-  
 
   const validatePassword = text => {
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (passwordRegex.test(text)) {
-      setPasswordError(
-        'Password must be at least 8 characters, include a special character, uppercase, lowercase, and a number.',
-      );
+      // setPasswordError(
+      //   'Password must be at least 8 characters, include a special character, uppercase, lowercase, and a number.',
+      // );
     } else {
       setPasswordError('');
     }
@@ -341,141 +347,141 @@ username: email.trim(),
     ),
   };
   return (
-   
     <Reanimatable.View
       animation="fadeIn"
       duration={500}
       style={styles.MainContainer}>
-
-        {loading ? (
-           <View style={styles.MainContainer}>
-      
+      {loading ? (
+        <View style={styles.MainContainer}>
           <DotIndicator size={8} color="#4756ca" />
-        </View>) :  (   <KeyboardAvoidingView
-        behavior={Platform.OS === 'android' ? 'height' : undefined}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}>
-          <LinearGradient
-            style={styles.MainContainer}
-            colors={['#4756ca', '#616dc7']}>
-            <View style={styles.HeaderConatiner}>
-              <View
-                style={{
-                  justifyContent: 'center',
-                  flexDirection: 'row',
-                  bottom: SCREEN_HEIGHT * 0.03,
-                }}>
-                <Text
-                  style={{
-                    color: '#fff',
-                    textAlign: 'center',
-                    fontFamily: 'Nunito-Regular',
-                    top: 10,
-                  }}>
-                  Already have an account?
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('LoginScreen')}>
-                <LinearGradient
-                  colors={['#AAB3E580', '#AAB3E580']}
-                  style={styles.Box}>
-                  <Text
-                    style={{
-                      fontFamily: 'Nunito-Bold',
-                      color: '#fff',
-                      textAlign: 'center',
-                    }}>
-                    Login
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-            <View style={{bottom: SCREEN_HEIGHT * 0.02}}>
-              <Toast config={toastConfig} />
-            </View>
-            <View style={styles.CompanyTittleContainer}>
-              <Text style={styles.CompanyTittle}>MedsTrack</Text>
-              <View>
-                <Image
-                  source={require('../assets/logo-removebg-preview.png')}
-                  style={styles.logo}
-                />
-              </View>
-            </View>
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={isvisiable}>
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                }}>
+        </View>
+      ) : (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'android' ? 'height' : undefined}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}>
+            <LinearGradient
+              style={styles.MainContainer}
+              colors={['#4756ca', '#616dc7']}>
+              <View style={styles.HeaderConatiner}>
                 <View
                   style={{
-                    height: 200,
-                    width: 200,
-                    backgroundColor: '#4a5556',
-                    borderRadius: 10,
-                    alignItems: 'center',
                     justifyContent: 'center',
+                    flexDirection: 'row',
+                    bottom: SCREEN_HEIGHT * 0.03,
                   }}>
-                  <LottieView
-                    ref={animationRef}
-                    autoPlay
-                    loop
-                    style={{height: 150, width: 150}}
-                    source={require('../assets/Sucessfull.json')}
+                  <Text
+                    style={{
+                      color: '#fff',
+                      textAlign: 'center',
+                      fontFamily: 'Nunito-Regular',
+                      top: 10,
+                    }}>
+                    Already have an account?
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('LoginScreen')}>
+                  <LinearGradient
+                    colors={['#AAB3E580', '#AAB3E580']}
+                    style={styles.Box}>
+                    <Text
+                      style={{
+                        fontFamily: 'Nunito-Bold',
+                        color: '#fff',
+                        textAlign: 'center',
+                      }}>
+                      Login
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+              <View style={{zIndex: 1, top: SCREEN_HEIGHT * 0.18}}>
+                <Toast config={toastConfig} />
+              </View>
+
+              <View style={styles.CompanyTittleContainer}>
+                <Text style={styles.CompanyTittle}>MedsTrack</Text>
+                <View>
+                  <Image
+                    source={require('../assets/logo-removebg-preview.png')}
+                    style={styles.logo}
                   />
                 </View>
               </View>
-            </Modal>
-
-            <LinearGradient
-              colors={['#AAB3E5', '#4752ca']}
-              style={styles.LowerContainer}></LinearGradient>
-
-            <View
-              style={[
-                styles.UpperContainer,
-                {marginTop: -SCREEN_HEIGHT * 0.03},
-              ]}>
-              <View
-                style={{
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginTop: SCREEN_HEIGHT * 0.03,
-                }}>
-                <Text
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={isvisiable}>
+                <View
                   style={{
-                    fontFamily: 'Nunito-Bold',
-                    color: '#000',
-                    fontSize: SCREEN_HEIGHT * 0.04,
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
                   }}>
-                  Welcome!
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'Nunito-Regular',
-                    color: '#000',
-                    fontSize: SCREEN_HEIGHT * 0.021,
-                  }}>
-                  Enter your details below
-                </Text>
-              </View>
-
-              {selectedOption === 'phone' ? (
-                <>
                   <View
                     style={{
-                      marginBottom: SCREEN_HEIGHT * 0.05,
-                      top: SCREEN_HEIGHT * 0.05,
+                      height: 200,
+                      width: 200,
+                      backgroundColor: '#4a5556',
+                      borderRadius: 10,
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}>
-                    {/* <TextInput
+                    <LottieView
+                      ref={animationRef}
+                      autoPlay
+                      loop
+                      style={{height: 150, width: 150}}
+                      source={require('../assets/Sucessfull.json')}
+                    />
+                  </View>
+                </View>
+              </Modal>
+
+              <LinearGradient
+                colors={['#AAB3E5', '#4752ca']}
+                style={styles.LowerContainer}></LinearGradient>
+
+              <View
+                style={[
+                  styles.UpperContainer,
+                  {marginTop: -SCREEN_HEIGHT * 0.03},
+                ]}>
+                <View
+                  style={{
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: SCREEN_HEIGHT * 0.03,
+                  }}>
+                  <Text
+                    style={{
+                      fontFamily: 'Nunito-Bold',
+                      color: '#000',
+                      fontSize: SCREEN_HEIGHT * 0.04,
+                    }}>
+                    Welcome!
+                  </Text>
+                  <Text
+                    style={{
+                      fontFamily: 'Nunito-Regular',
+                      color: '#000',
+                      fontSize: SCREEN_HEIGHT * 0.021,
+                    }}>
+                    Enter your details below
+                  </Text>
+                </View>
+
+                {selectedOption === 'phone' ? (
+                  <>
+                    <View
+                      style={{
+                        marginBottom: SCREEN_HEIGHT * 0.05,
+                        top: SCREEN_HEIGHT * 0.05,
+                      }}>
+                      {/* <TextInput
                       onBlur={() => setisusernameactive(false)}
                       onFocus={() => setisusernameactive(true)}
                       style={[
@@ -503,39 +509,39 @@ username: email.trim(),
                       </Text>
                     ) : null} */}
 
-                    <TextInput
-                      onBlur={() => setisactivefirstname(false)}
-                      onFocus={() => setisactivefirstname(true)}
-                      style={[
-                        styles.Whiteinput,
-                        {
-                          borderColor: isactivefirstname ? '#4752ca' : '#fff',
-                        },
-                        {bottom: SCREEN_HEIGHT * 0.03},
-                      ]}
-                      placeholder="First Name"
-                      value={firstName}
-                      onChangeText={setfirstName}
-                      placeholderTextColor="#000"
-                      keyboardType="default"
-                    />
-                    <TextInput
-                      onBlur={() => setisactivelastname(false)}
-                      onFocus={() => setisactivelastname(true)}
-                      style={[
-                        styles.Whiteinput,
-                        {
-                          borderColor: isactivelastname ? '#4752ca' : '#fff',
-                        },
-                        {bottom: SCREEN_HEIGHT * 0.03},
-                      ]}
-                      placeholder="Last Name"
-                      value={lastName}
-                      onChangeText={setlastName}
-                      placeholderTextColor="#000"
-                      keyboardType="default"
-                    />
-                    {/* <TextInput
+                      <TextInput
+                        onBlur={() => setisactivefirstname(false)}
+                        onFocus={() => setisactivefirstname(true)}
+                        style={[
+                          styles.Whiteinput,
+                          {
+                            borderColor: isactivefirstname ? '#4752ca' : '#fff',
+                          },
+                          {bottom: SCREEN_HEIGHT * 0.03},
+                        ]}
+                        placeholder="First Name"
+                        value={firstName}
+                        onChangeText={setfirstName}
+                        placeholderTextColor="#000"
+                        keyboardType="default"
+                      />
+                      <TextInput
+                        onBlur={() => setisactivelastname(false)}
+                        onFocus={() => setisactivelastname(true)}
+                        style={[
+                          styles.Whiteinput,
+                          {
+                            borderColor: isactivelastname ? '#4752ca' : '#fff',
+                          },
+                          {bottom: SCREEN_HEIGHT * 0.03},
+                        ]}
+                        placeholder="Last Name"
+                        value={lastName}
+                        onChangeText={setlastName}
+                        placeholderTextColor="#000"
+                        keyboardType="default"
+                      />
+                      {/* <TextInput
                       onBlur={() => setisactivefullname(false)}
                       onFocus={() => setisactivefullname(true)}
                       style={[
@@ -551,142 +557,176 @@ username: email.trim(),
                       placeholderTextColor="#000"
                       keyboardType="default"
                     /> */}
-                    <TextInput
-                      onBlur={() => setisActiveemail(false)}
-                      onFocus={() => setisActiveemail(true)}
-                      style={[
-                        styles.Whiteinput,
-                        {borderColor: isActiveemail ? '#4752ca' : '#fff'},
-                      ]}
-                      placeholder="Enter Email"
-                      value={email}
-                      onChangeText={setEmail}
-                      placeholderTextColor="#000"
-                    />
+                      <TextInput
+                        onBlur={() => setisActiveemail(false)}
+                        onFocus={() => setisActiveemail(true)}
+                        style={[
+                          styles.Whiteinput,
+                          {borderColor: isActiveemail ? '#4752ca' : '#fff'},
+                        ]}
+                        placeholder="Enter Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        placeholderTextColor="#000"
+                      />
 
-                    {/* Password Input */}
-                    <TextInput
-                      onBlur={() => setisActivepassword(false)}
-                      onFocus={() => setisActivepassword(true)}
-                      style={[
-                        styles.Whiteinput,
-                        {
-                          borderColor: isActivepassword ? '#4752ca' : '#fff',
-                        },
-                      ]}
-                      placeholder="Enter Password"
-                      value={password}
-                      onChangeText={validatePassword}
-                      placeholderTextColor="#000"
-                      secureTextEntry
-                      keyboardType="default"
-                    />
-                    {passwordError ? (
-                      <Text
+                      {/* Password Input */}
+                      <TextInput
+                        onBlur={() => setisActivepassword(false)}
+                        onFocus={() => setisActivepassword(true)}
+                        style={[
+                          styles.Whiteinput,
+                          {
+                            borderColor: isActivepassword ? '#4752ca' : '#fff',
+                          },
+                        ]}
+                        placeholder="Enter Password"
+                        value={password}
+                        onChangeText={validatePassword}
+                        placeholderTextColor="#000"
+                        secureTextEntry
+                        keyboardType="default"
+                      />
+                      {passwordError ? (
+                        <Text
+                          style={{
+                            color: 'red',
+                            fontSize: 12,
+                            bottom: SCREEN_HEIGHT * 0.045,
+                            left: SCREEN_HEIGHT * 0.02,
+                          }}>
+                          {passwordError}
+                        </Text>
+                      ) : null}
+                      <TextInput
+                        onBlur={() => setisActiveConfirmPassword(false)}
+                        onFocus={() => setisActiveConfirmPassword(true)}
+                        style={[
+                          styles.Whiteinput,
+                          {
+                            borderColor: isActiveConfirmPassword
+                              ? '#4752ca'
+                              : '#fff',
+                          },
+                        ]}
+                        placeholder="Enter Confirm Password"
+                        value={confirmpassword}
+                        onChangeText={text => setconfirmpassword(text)}
+                        placeholderTextColor="#000"
+                        secureTextEntry
+                        keyboardType="default"
+                      />
+                    </View>
+                    <View
+                      style={{
+                        marginVertical: SCREEN_HEIGHT * 0.02,
+                        justifyContent: 'flex-start',
+                      }}>
+                      <View
                         style={{
-                          color: 'red',
-                          fontSize: 12,
-                          bottom: SCREEN_HEIGHT * 0.045,
-                          left: SCREEN_HEIGHT * 0.02,
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginHorizontal: SCREEN_WIDTH * 0.05,
+                          top: -SCREEN_HEIGHT * 0.05,
                         }}>
-                        {passwordError}
-                      </Text>
-                    ) : null}
-                    <TextInput
-                      onBlur={() => setisActiveConfirmPassword(false)}
-                      onFocus={() => setisActiveConfirmPassword(true)}
-                      style={[
-                        styles.Whiteinput,
-                        {
-                          borderColor: isActiveConfirmPassword
-                            ? '#4752ca'
-                            : '#fff',
-                        },
-                      ]}
-                      placeholder="Enter Confirm Password"
-                      value={confirmpassword}
-                      onChangeText={text => setconfirmpassword(text)}
-                      placeholderTextColor="#000"
-                      keyboardType="default"
-                    />
-                  </View>
-                  <View
-                    style={{
-                      marginVertical: SCREEN_HEIGHT * 0.02,
-                      justifyContent: 'flex-start',
-                    }}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginHorizontal: SCREEN_WIDTH * 0.05,
-                        top: -SCREEN_HEIGHT * 0.05,
-                      }}>
-                      <TouchableOpacity
-                        disabled={isTimerActive}
-                        onPress={handleSendOtp}>
-                        <Text
-                          style={{
-                            fontSize: 15,
-                            textAlign: 'right',
-                            fontFamily: 'Nunito-Regular',
-                            color: isTimerActive ? '#000' : '#000',
-                          }}>
-                          {isOtpSent ? 'OTP Sent' : 'Send OTP'}
-                        </Text>
-                      </TouchableOpacity>
-                      {isTimerActive && (
-                        <Text
-                          style={{
-                            color: '#4752ca',
-                            fontSize: 16,
-                            fontFamily: 'Nunito-Regular',
-                          }}>
-                          Wait {timer}s
-                        </Text>
-                      )}
+                        <TouchableOpacity
+                          disabled={isTimerActive}
+                          onPress={handleSendOtp}>
+                          <Text
+                            style={{
+                              fontSize: 15,
+                              textAlign: 'right',
+                              fontFamily: 'Nunito-Regular',
+                              color: isTimerActive ? '#000' : '#000',
+                            }}>
+                            {isOtpSent ? 'OTP Sent' : 'Send OTP'}
+                          </Text>
+                        </TouchableOpacity>
+                        {isTimerActive && (
+                          <Text
+                            style={{
+                              color: '#4752ca',
+                              fontSize: 16,
+                              fontFamily: 'Nunito-Regular',
+                            }}>
+                            Wait {timer}s
+                          </Text>
+                        )}
+                      </View>
                     </View>
-                  </View>
 
-                  {isOtpSent && (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        width: '100%',
-                        columnGap: 17,
-                        top: -SCREEN_HEIGHT * 0.06,
-                        right: SCREEN_HEIGHT * 0.006,
-                      }}>
-                      {otpInputs.map((_, index) => (
-                        <TextInput
-                          key={index}
-                          ref={el => (inputRefs.current[index] = el)}
-                          value={otpInputs[index]}
-                          onChangeText={text => handleInputChange(text, index)}
-                          onKeyPress={({nativeEvent}) => {
-                            if (nativeEvent.key === 'Backspace') {
-                              handleBackspace(otpInputs[index], index);
+                    {isOtpSent && (
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                          width: '100%',
+                          columnGap: 17,
+                          top: -SCREEN_HEIGHT * 0.06,
+                          right: SCREEN_HEIGHT * 0.006,
+                        }}>
+                        {otpInputs.map((_, index) => (
+                          <TextInput
+                            key={index}
+                            ref={el => (inputRefs.current[index] = el)}
+                            value={otpInputs[index]}
+                            onChangeText={text =>
+                              handleInputChange(text, index)
                             }
-                          }}
-                          style={[
-                            styles.otpInput,
-                            {
-                              borderColor: otpInputs[index]
-                                ? '#4752ca'
-                                : '#000',
-                            },
-                          ]}
-                          keyboardType="number-pad"
-                          maxLength={6}
-                          blurOnSubmit={index === otpInputs.length - 1}
-                        />
-                      ))}
-                    </View>
-                  )}
+                            onKeyPress={({nativeEvent}) => {
+                              if (nativeEvent.key === 'Backspace') {
+                                handleBackspace(otpInputs[index], index);
+                              }
+                            }}
+                            style={[
+                              styles.otpInput,
+                              {
+                                borderColor: otpInputs[index]
+                                  ? '#4752ca'
+                                  : '#000',
+                              },
+                            ]}
+                            keyboardType="number-pad"
+                            maxLength={6}
+                            blurOnSubmit={index === otpInputs.length - 1}
+                          />
+                        ))}
+                      </View>
+                    )}
 
-                  {!isOtpSent ? (
+                    {!isOtpSent ? (
+                      <LinearGradient
+                        colors={['#4756ca', '#616dc7']}
+                        style={[
+                          styles.loginButton,
+                          {bottom: SCREEN_HEIGHT * 0.05},
+                          {top: -30},
+                        ]}>
+                        <TouchableOpacity
+                          style={styles.loginButton}
+                          onPress={handleVerify}>
+                          <Text style={styles.loginButtonText}>Sign Up</Text>
+                        </TouchableOpacity>
+                      </LinearGradient>
+                    ) : (
+                      <LinearGradient
+                        colors={['#4756ca', '#616dc7']}
+                        style={[
+                          styles.loginButton,
+                          {bottom: SCREEN_HEIGHT * 0.05},
+                          {top: -30},
+                        ]}>
+                        <TouchableOpacity
+                          style={[styles.loginButton]}
+                          onPress={handleVerify}>
+                          <Text style={styles.loginButtonText}>Sign up</Text>
+                        </TouchableOpacity>
+                      </LinearGradient>
+                    )}
+                  </>
+                ) : (
+                  <>
                     <LinearGradient
                       colors={['#4756ca', '#616dc7']}
                       style={[
@@ -696,48 +736,17 @@ username: email.trim(),
                       ]}>
                       <TouchableOpacity
                         style={styles.loginButton}
-                        onPress={handleVerify}>
-                        <Text style={styles.loginButtonText}>Sign Up</Text>
+                        onPress={handleLoginWithEmail}>
+                        <Text style={styles.loginButtonText}>SignUp</Text>
                       </TouchableOpacity>
                     </LinearGradient>
-                  ) : (
-                    <LinearGradient
-                      colors={['#4756ca', '#616dc7']}
-                      style={[
-                        styles.loginButton,
-                        {bottom: SCREEN_HEIGHT * 0.05},
-                        {top: -30},
-                      ]}>
-                      <TouchableOpacity
-                        style={[styles.loginButton]}
-                        onPress={handleVerify}>
-                        <Text style={styles.loginButtonText}>Sign up</Text>
-                      </TouchableOpacity>
-                    </LinearGradient>
-                  )}
-                </>
-              ) : (
-                <>
-                  <LinearGradient
-                    colors={['#4756ca', '#616dc7']}
-                    style={[
-                      styles.loginButton,
-                      {bottom: SCREEN_HEIGHT * 0.05},
-                      {top: -30},
-                    ]}>
-                    <TouchableOpacity
-                      style={styles.loginButton}
-                      onPress={handleLoginWithEmail}>
-                      <Text style={styles.loginButtonText}>SignUp</Text>
-                    </TouchableOpacity>
-                  </LinearGradient>
-                </>
-              )}
-            </View>
-          </LinearGradient>
-        </ScrollView>
-      </KeyboardAvoidingView>)}
-   
+                  </>
+                )}
+              </View>
+            </LinearGradient>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      )}
     </Reanimatable.View>
   );
 };

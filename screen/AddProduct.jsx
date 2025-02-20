@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, {useState, useMemo} from 'react';
 import {
   View,
   StyleSheet,
@@ -17,7 +17,7 @@ import {
 } from 'react-native-paper';
 import LinearGradient from 'react-native-linear-gradient';
 import Search from 'react-native-vector-icons/AntDesign';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
 let screenWidth = Dimensions.get('window').width;
 let screenHeight = Dimensions.get('window').height;
@@ -81,15 +81,16 @@ const ProductForm = () => {
         visible={menuVisible}
         onDismiss={() => setMenuVisible(false)}
         anchor={
-          <LinearGradient colors={['#fff', '#fff']}>
+          <LinearGradient
+            style={{borderRadius: 4}}
+            colors={['#4756ca', '#616dc7']}>
             <Button
               style={{
-                backgroundColor: '#000',
                 width: screenHeight * 0.41,
-                height: screenHeight * 0.06,
-                borderRadius: 4,
+                height: screenHeight * 0.04,
                 alignItems: 'center',
-                marginVertical: 10,
+                marginBottom: screenHeight * 0.02,
+                top: 6,
               }}
               mode="text"
               textColor="white"
@@ -100,7 +101,7 @@ const ProductForm = () => {
         }>
         <FlatList
           data={filteredProductForms}
-          renderItem={({ item }) => (
+          renderItem={({item}) => (
             <Menu.Item
               onPress={() => handleMenuItemPress(item)}
               title={item}
@@ -111,15 +112,19 @@ const ProductForm = () => {
           ItemSeparatorComponent={Divider}
         />
       </Menu>
-      <TextInput
-        label="Product MRP"
-        value={mrp}
-        onChangeText={text => setMrp(text)}
-        keyboardType="numeric"
-        style={styles.input}
-        theme={DefaultTheme}
-        mode="outlined"
-      />
+
+      <View style={{marginTop: 15}}>
+        <TextInput
+          label="Product MRP"
+          value={mrp}
+          onChangeText={text => setMrp(text)}
+          keyboardType="numeric"
+          style={styles.input}
+          theme={DefaultTheme}
+          mode="outlined"
+        />
+      </View>
+
       <TextInput
         label="Units Per Pack"
         value={unitsPerPack}
@@ -136,15 +141,13 @@ const ProductForm = () => {
           bottom: screenHeight * 0.006,
           columnGap: screenHeight * 0.26,
         }}>
-        <Text style={{ color: '#000' }}>Composition</Text>
-        <Text style={{ color: '#000', right: screenHeight * 0.01 }}>
+        <Text style={{color: '#000'}}>Composition</Text>
+        <Text style={{color: '#000', right: screenHeight * 0.01}}>
           (optional)
         </Text>
       </View>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Inventory')}>
-
-
+      <TouchableOpacity onPress={() => navigation.navigate('AddComposition')}>
         <View
           style={{
             flexDirection: 'row',
@@ -155,12 +158,20 @@ const ProductForm = () => {
             borderWidth: 1,
             height: 50,
           }}>
-          <Text style={{ fontFamily: "Nunito-Regular", left: screenHeight * 0.02, color: "#000" }}> Enter Composition</Text>
+          <Text
+            style={{
+              fontFamily: 'Nunito-Regular',
+              left: screenHeight * 0.02,
+              color: '#000',
+            }}>
+            {' '}
+            Enter Composition
+          </Text>
           <Search
             name="search1"
             size={25}
             color={'#000'}
-            style={{ left: screenHeight * 0.23 }}
+            style={{left: screenHeight * 0.23}}
           />
         </View>
       </TouchableOpacity>

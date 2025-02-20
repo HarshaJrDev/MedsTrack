@@ -7,56 +7,102 @@ import {
   ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { BarChart, LineChart } from 'react-native-gifted-charts';
 
 const DashboardScreen = ({ navigation }) => {
+  const barData = [
+    { value: 45, label: 'Mon' },
+    { value: 80, label: 'Tue', frontColor: '#3f4fb8' },
+    { value: 60, label: 'Wed', frontColor: '#3f4fb8' },
+    { value: 90, label: 'Thu' },
+    { value: 50, label: 'Fri', frontColor: '#3f4fb8' },
+    { value: 30, label: 'Sat' },
+    { value: 20, label: 'Sun' },
+  ];
+
+  const lineData = [
+    { value: 150 },
+    { value: 180 },
+    { value: 120 },
+    { value: 200 },
+    { value: 170 },
+    { value: 160 },
+    { value: 140 },
+  ];
+
   return (
-    <LinearGradient   style={styles.container} colors={['#b6c1ee', '#3f4fb8']}>
-          <ScrollView style={styles.container}>
-      <View style={styles.statsContainer}>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>150</Text>
-          <Text style={styles.statLabel}>Total Medicines</Text>
+    <LinearGradient style={styles.container} colors={['#b6c1ee', '#3f4fb8']}>
+      <ScrollView style={styles.container}>
+        <View style={styles.statsContainer}>
+          <View style={styles.statBox}>
+            <Text style={styles.statNumber}>150</Text>
+            <Text style={styles.statLabel}>Total Medicines</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statNumber}>45</Text>
+            <Text style={styles.statLabel}>Low Stock Items</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statNumber}>28</Text>
+            <Text style={styles.statLabel}>Today's Orders</Text>
+          </View>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>45</Text>
-          <Text style={styles.statLabel}>Low Stock Items</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>28</Text>
-          <Text style={styles.statLabel}>Today's Orders</Text>
-        </View>
-      </View>
-      
-      <View style={styles.menuContainer}>
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('Inventory')}
-        >
-          <Text style={styles.menuText}>Inventory</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('Prescriptions')}
-        >
-          <Text style={styles.menuText}>Prescriptions</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('Dispense')}
-        >
-          <Text style={styles.menuText}>Dispense Medication</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
 
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Stock Levels</Text>
+          <BarChart
+            barWidth={22}
+            noOfSections={3}
+            barBorderRadius={4}
+            frontColor="lightgray"
+            data={barData}
+            yAxisThickness={0}
+            xAxisThickness={0}
+          />
+        </View>
+
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Orders Trend</Text>
+          <LineChart
+            data={lineData}
+            thickness={3}
+            color={'#3f4fb8'}
+            hideDataPoints
+            startFillColor={'#b6c1ee'}
+            startOpacity={0.3}
+            endOpacity={0.1}
+            spacing={40}
+          />
+        </View>
+
+        <View style={styles.menuContainer}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Inventory')}
+          >
+            <Text style={styles.menuText}>Inventory</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Prescriptions')}
+          >
+            <Text style={styles.menuText}>Prescriptions</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Dispense')}
+          >
+            <Text style={styles.menuText}>Dispense Medication</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </LinearGradient>
-
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
   },
   statsContainer: {
     flexDirection: 'row',
@@ -70,10 +116,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '30%',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
@@ -88,6 +131,24 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
+  chartContainer: {
+    backgroundColor: '#fff',
+    margin: 20,
+    padding: 15,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  chartTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#3f4fb8',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
   menuContainer: {
     padding: 20,
   },
@@ -97,10 +158,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 15,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,

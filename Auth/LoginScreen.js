@@ -23,15 +23,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
-  BallIndicator,
-  BarIndicator,
-  DotIndicator,
-  MaterialIndicator,
-  PacmanIndicator,
-  PulseIndicator,
-  SkypeIndicator,
-  UIActivityIndicator,
-  WaveIndicator,
+  DotIndicator
 } from 'react-native-indicators';
 
 import { AppContext } from "../Context/AppContext";
@@ -198,16 +190,25 @@ const LoginScreen = () => {
     
           console.log("Navigating to PharmacyView...");
           navigation.replace("PharmacyView");
-        } else {
-          console.log("Login failed with status:", response.status);
-          Alert.alert("Login Failed", "Invalid email or password.");
         }
       } catch (error) {
         console.error("Error during login:", error.response?.data || error.message);
     
-        const errorMessage =
-          error.response?.data?.message || "Something went wrong. Please try again later.";
+        const statusCode = error.response?.status;
+        const errorMessage = error.response?.data?.message || "Something went wrong. Please try again later.";
     
+        // Handle 401 Unauthorized Error (Invalid Credentials)
+        if (statusCode === 401) {
+          Toast.show({
+            type: "error",
+            text1: "Login Failed",
+            text2: "Invalid email or password. Please try again.",
+          });
+          console.log("Invalid credentials provided.");
+          return;
+        }
+    
+        // Generic error handling for other cases
         Toast.show({
           type: "error",
           text1: "Login Failed",
@@ -219,6 +220,8 @@ const LoginScreen = () => {
         setisvisiable(false);
       }
     };
+    
+    
     
 
   
@@ -441,7 +444,7 @@ const LoginScreen = () => {
                            />
                          </View>
                        </View>
-           
+            
                        <LinearGradient
                          colors={['#AAB3E5', '#4752ca']}
                          style={styles.LowerContainer}></LinearGradient>
@@ -753,8 +756,10 @@ const LoginScreen = () => {
                            <Text onPress={handleforgotpassword} style={styles.forgotLabel}>
                              Forgot Password?
                            </Text>
+                           
                          )}
                        </View>
+                       
                        <Modal animationType="slide" transparent visible={isvisiable}>
                          <View
                            style={{
@@ -785,6 +790,7 @@ const LoginScreen = () => {
                        </Modal>
                      </LinearGradient>
                    </ScrollView>
+                   
                  </KeyboardAvoidingView>
 
                 )}

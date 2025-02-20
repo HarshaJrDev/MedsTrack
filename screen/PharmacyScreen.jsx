@@ -18,10 +18,10 @@ const PharmacyView = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
 
   const data = [
-    { id: '1', name: 'Card 1', location: 'Location 1', img: require('../assets/Pharmacist-rafiki.png') },
-    { id: '2', name: 'Card 2', location: 'Location 2', img: require('../assets/Pharmacist-rafiki.png') },
-    { id: '3', name: 'Card 3', location: 'Location 3', img: require('../assets/Pharmacist-rafiki.png') },
-    { id: '4', name: 'Card 4', location: 'Location 4', img: require('../assets/Pharmacist-rafiki.png') },
+    { id: '1', name: 'pharmacy 1', location: '', img: require('../assets/Pharmacist-rafiki.png') },
+    { id: '2', name: 'pharmacy 2', location: '', img: require('../assets/Pharmacist-rafiki.png') },
+    { id: '3', name: 'pharmacy 3', location: '', img: require('../assets/Pharmacist-rafiki.png') },
+    { id: '4', name: 'pharmacy 4', location: '', img: require('../assets/Pharmacist-rafiki.png') },
     { id: 'add', isAddCard: true },
   ];
 
@@ -127,7 +127,7 @@ const PharmacyView = () => {
             <Text style={styles.cardLocation}>{item.location}</Text>
           </View>
 
-          <View style={{flexDirection:"row",display:"flex",marginTop:SCREEN_HEIGHT*0.03,left:SCREEN_HEIGHT*0.2,backgroundColor:"#4756ca",alignItems:"center",borderRadius:SCREEN_HEIGHT*0.03,height:SCREEN_HEIGHT*0.04,width:SCREEN_HEIGHT*0.2}}>
+          <View style={{flexDirection:"row",display:"flex",marginTop:SCREEN_HEIGHT*0.03,left:SCREEN_HEIGHT*0.15,backgroundColor:"#4756ca",alignItems:"center",borderRadius:SCREEN_HEIGHT*0.03,height:SCREEN_HEIGHT*0.04,width:SCREEN_HEIGHT*0.2}}>
               <TouchableOpacity onPress={()=>navigation.navigate('BranchScreen')}>
                 <Text style={{fontFamily:"Nunito-Regular",left:7,color:'#fff'}}>View Branch</Text>
               </TouchableOpacity>

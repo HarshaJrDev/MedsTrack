@@ -115,14 +115,14 @@ const PharmacyDetails = () => {
       <View style={styles.container}>
         <Text style={styles.heading}>Pharmacy Details</Text>
         <TextInput label="Store Name" value={branchName} onChangeText={setBranchName} style={styles.input} mode="outlined" theme={DefaultTheme} />
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={() => navigation.replace('LocationSearch', { previousData: { branchName, storeLocation, licenseNumber, gstNumber, contactPerson, email, phone, city, state, pincode, country, showContactPerson } })}>
           <View style={[styles.input, styles.searchBar]}>
             <Text style={{ color: storeLocation ? '#000' : '#888' }}>
               {fullAddress || "Select Store Location"}
             </Text>
           </View>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TextInput label="Pharmacy License Number" value={licenseNumber} onChangeText={setLicenseNumber} style={styles.input} mode="outlined" theme={DefaultTheme} />
         <TextInput label="GST Number" value={gstNumber} onChangeText={setGstNumber} style={styles.input} mode="outlined" theme={DefaultTheme} />
         <View style={styles.checkboxContainer}>

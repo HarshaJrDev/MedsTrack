@@ -31,15 +31,16 @@ const customTheme = {
   },
 };
 
-const InventoryScreen = () => {
+const AddComposition = () => {
   const [selectedCategory, setSelectedCategory] = useState({type: ''});
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inventory, setInventory] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [otherCategory, setOtherCategory] = useState('');
+  const [isDatePickerExpiryVisible, setisDatePickerExpiryVisible] =
 
     useState(false);
 
@@ -81,11 +82,6 @@ const InventoryScreen = () => {
   const filteredInventory = inventory.filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-
-  const handleConfirm = (date) => {
-    setExpiryDate(moment(date).format("MM-YYYY"));
-    hideDatePicker();
-  };
 
   const handleAddItem = () => {
     const item = {
@@ -161,14 +157,12 @@ const InventoryScreen = () => {
     );
   };
 
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
-
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
-
+  const hideDatePickerExpiry = () => {
+    setisDatePickerExpiryVisible(false);
+  };
 
   const formatMonthYear = (text) => {
     // Remove any non-numeric characters
@@ -192,6 +186,7 @@ const InventoryScreen = () => {
   const handleSelect = value => {
     setSelectedCategory({...selectedCategory, type: value});
     console.log('Selected Category:', value); // Log the selected category
+
     if (value !== 'Others') {
       setOtherCategory(''); // Clear the "Other" input if not selected
     }
@@ -202,9 +197,9 @@ const InventoryScreen = () => {
     setNewItem({ ...newItem, expiryDate: moment(date).format("DD-MM-YYYY") });
     hideDatePicker();
   };
-  const handleDateConfirmExpiry = (date) => {
-    setNewItem({ ...newItem, batchExpiry: date.toDateString() });
-
+  const handleDateConfirmExpiry = date => {
+    setNewItem({...newItem, batchExpiry: date.toDateString()});
+    hideDatePickerExpiry();
   };
 
   const handleCancel = async () => {
@@ -265,10 +260,9 @@ const InventoryScreen = () => {
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => setModalVisible(true)}>
-          <Text style={styles.addButtonText}>+ Add Item</Text>
+          <Text style={styles.addButtonText}>+ add composition </Text>
         </TouchableOpacity>
       </View>
-
       <FlatList
         data={filteredInventory}
         renderItem={renderItem}
@@ -276,11 +270,10 @@ const InventoryScreen = () => {
         contentContainerStyle={styles.list}
         ListEmptyComponent={() => (
           <View style={styles.emptyList}>
-            <Text style={styles.emptyText}>No items in inventory</Text>
+            <Text style={styles.emptyText}>No items in Composition</Text>
           </View>
         )}
       />
-
       <Modal
         animationType="slide"
         transparent={true}
@@ -304,19 +297,19 @@ const InventoryScreen = () => {
   onChangeText={text => setNewItem({ ...newItem, name: text })}
 />
 
-
-        <TextInput
-          mode="outlined"
-          label="Expiry Date (MM-YYYY)"
-          style={styles.input}
-          value={expiryDate}
-          editable={false} // Prevent manual input
-          right={<TextInput.Icon icon="calendar" onPress={showDatePicker} />}
-        />
-
+<TextInput
+  mode="outlined"
+  theme={customTheme}
+  label="Expiry Date (MM-YYYY)"
+  style={styles.modalInput}
+  value={expiryDate}
+  onChangeText={(text) => setExpiryDate(formatMonthYear(text))}
+  keyboardType="numeric"
+  maxLength={7} // MM-YYYY is 7 characters
+/>
 
               <View
-                style={{flexDirection: 'row', columnGap: SCREEN_HEIGHT * 0.02,marginTop:20}}>
+                style={{flexDirection: 'row', columnGap: SCREEN_HEIGHT * 0.02}}>
                 <TextInput
                   mode="outlined"
                   theme={customTheme}
@@ -551,13 +544,13 @@ const InventoryScreen = () => {
       </Modal>
 
       <KeyboardAvoidingView behavior="padding">
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        onConfirm={handleConfirm}
-        onCancel={hideDatePicker}
-        display="spinner"
-      />
+        <DateTimePickerModal
+         date={selectedDate}
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleDateConfirm}
+          onCancel={hideDatePicker}
+        />
       </KeyboardAvoidingView>
 
    
@@ -691,7 +684,7 @@ const styles = StyleSheet.create({
   Packinputs: {
     marginBottom: 15,
 
-    width: SCREEN_HEIGHT * 0.19,
+    width: SCREEN_HEIGHT * 0.17,
   },
   inputLabel: {
     fontSize: 14,
@@ -741,4 +734,4 @@ const styles = StyleSheet.create({
   },
  
 });
-export default InventoryScreen;
+export default AddComposition;

@@ -31,6 +31,8 @@ import BranchFormStore from './screen/BranchForm';
 import BranchScreen from './screen/BranchScreen';
 import BranchLocationConfirmation from './screen/BranchLocationConfirmation';
 import GetLocationBranch from './screen/GetLocationBranch';
+import SwitchBranchAndPharmacy from './screen/SwitchBranchAndPharmacy';
+import AddComposition from './screen/AddComposition';
 
 const rnBiometrics = new ReactNativeBiometrics();
 
@@ -136,19 +138,21 @@ const DrawerNavigator = () => (
     <Drawer.Screen name="Dispense" component={DispenseScreen} options={{ title: 'Dispense' }} />
     <Drawer.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
     <Drawer.Screen name="StaffManagement" component={StaffManagementScreen} options={{ title: 'Staff Management' }} />
+    <Drawer.Screen name="SwitchBranchAndPharmacy" component={SwitchBranchAndPharmacy}/>
   </Drawer.Navigator>
 );
 
 const AuthNavigator = () => (
-  <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false }}>
+  <Stack.Navigator initialRouteName="MainApp" screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SplashScreen" component={SplashScreen} />
     <Stack.Screen name="MainApp" component={DrawerNavigator} options={{ headerShown: false }} />
     <Stack.Screen name="BranchScreen" component={BranchScreen} options={{headerShown:false}} />
     <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login' }} />
-    <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ title: 'Register' }} />
+    <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ headerShown:false }} />
     <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{ title: 'Forgot Password' }} />
     <Stack.Screen name="VerifyOtp" component={VerifyOtp} options={{ title: 'Verify OTP' }} />
     <Stack.Screen name="BranchFormStore" component={BranchFormStore} options={{ title: 'Add New Store' }} />
+    <Stack.Screen name="SearchScreen" component={SearchScreen} options={{ headerShown: true, headerTitleStyle: { fontSize: 15 } }} />
     <Stack.Screen name="AddProduct" component={AddProduct} options={{ headerTitleStyle: { fontSize: 15 } }} />
     <Stack.Screen name="LocationSearch" component={LocationSearch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
     <Stack.Screen name="PharmacyDetails" component={PharmacyDetails} options={{ headerTitleStyle: { fontSize: 15 } ,headerShown: false}} />
@@ -156,6 +160,7 @@ const AuthNavigator = () => (
     <Stack.Screen name="LocationConfirmation" component={LocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
     <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
     <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="AddComposition" component={AddComposition} options={{ headerTitleStyle: { fontSize: 15 }, title:"Composition",headerShown: true }} />
   </Stack.Navigator>
 );
 
@@ -165,7 +170,7 @@ const HomeNavigator = () => (
     <Stack.Screen name="Inventory" component={InventoryScreen} options={{ headerShown: true, title: 'Inventory' }} />
     <Stack.Screen name="SearchScreen" component={SearchScreen} options={{ headerShown: true, headerTitleStyle: { fontSize: 15 } }} />
     <Stack.Screen name="AddProduct" component={AddProduct} options={{ headerShown: false, headerTitleStyle: { fontSize: 15 } }} />
-    <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ title: 'Register' }} />
+    <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ headerShown:false }} />
     <Stack.Screen name="BranchScreen" component={BranchScreen} options={{headerShown:false}} />
     <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login',headerShown: false }} />
     <Stack.Screen name="BranchFormStore" component={BranchFormStore} options={{ title: 'Add New Store' }} />
@@ -175,6 +180,7 @@ const HomeNavigator = () => (
     <Stack.Screen name="LocationConfirmation" component={LocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
     <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
     <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="AddComposition" component={AddComposition} options={{ headerTitleStyle: { fontSize: 15 }, title:"Composition",headerShown: true }} />
   </Stack.Navigator>
 );
 
