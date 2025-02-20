@@ -116,7 +116,6 @@ const LoginScreen = () => {
       setPassword(text);
     };
 
-  
     const handleLoginWithEmail = async () => {
       console.log("Starting handleLoginWithEmail...");
     
@@ -160,11 +159,11 @@ const LoginScreen = () => {
     
       try {
         console.log("Sending login request...");
-        
+    
         const response = await axios.post(LOG_API, {
           email: trimmedEmail,
           password: trimmedPassword,
-          username: email,
+          username: trimmedEmail,
         });
     
         console.log("API Response:", response.data);
@@ -205,15 +204,22 @@ const LoginScreen = () => {
         }
       } catch (error) {
         console.error("Error during login:", error.response?.data || error.message);
+    
         const errorMessage =
           error.response?.data?.message || "Something went wrong. Please try again later.";
-        Alert.alert("Error", errorMessage);
+    
+        Toast.show({
+          type: "error",
+          text1: "Login Failed",
+          text2: errorMessage,
+        });
       } finally {
         // Hide loader after API call completes
         setislodading(false);
         setisvisiable(false);
       }
     };
+    
 
   
 
