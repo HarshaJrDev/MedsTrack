@@ -6,7 +6,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BRANCH_API } from '@env';
 import Toast from 'react-native-toast-message';
-import { AppContext } from '../Context/AppContext';
+import { AppContext } from '../../Context/AppContext';
 
 const PharmacyDetails = () => {
   const [branchName, setBranchName] = React.useState('');

@@ -1,4 +1,3 @@
-
 import React, {useState} from 'react';
 import {
   View,
@@ -17,8 +16,8 @@ import {TextInput, DefaultTheme} from 'react-native-paper';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from 'react-native-vector-icons/MaterialIcons'; 
-import moment from "moment";
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import moment from 'moment';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -31,20 +30,19 @@ const customTheme = {
   },
 };
 
-const AddComposition = () => {
+const InventoryScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState({type: ''});
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inventory, setInventory] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [otherCategory, setOtherCategory] = useState('');
-  const [isDatePickerExpiryVisible, setisDatePickerExpiryVisible] =
 
-    useState(false);
+  useState(false);
 
-    const [expiryDate, setExpiryDate] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
 
   const [newItem, setNewItem] = useState({
     name: '',
@@ -83,6 +81,11 @@ const AddComposition = () => {
     item.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  const handleConfirm = date => {
+    setExpiryDate(moment(date).format('MM-YYYY'));
+    hideDatePicker();
+  };
+
   const handleAddItem = () => {
     const item = {
       id: Date.now().toString(),
@@ -98,28 +101,29 @@ const AddComposition = () => {
       ptr: parseFloat(newItem.ptr || '0'),
       batchGstRate: parseFloat(newItem.batchGstRate || '0'),
     };
-  
+
     // Validate required fields
     if (!item.name) {
       Alert.alert('Error', 'Medicine Name is required');
       return;
     }
-  
+
     if (!item.expiryDate) {
       Alert.alert('Error', 'Expiry Date is required');
       return;
     }
-  
-    if (!item.category) { // ✅ FIXED: Correct validation for category
+
+    if (!item.category) {
+      // ✅ FIXED: Correct validation for category
       Alert.alert('Error', 'Category is required');
       return;
     }
-  
+
     setInventory([...inventory, item]); // Add item to inventory
-  
+
     // ✅ Ensure modal opens when needed
     setModalVisible(true);
-  
+
     // Reset form
     setNewItem({
       name: '',
@@ -139,7 +143,6 @@ const AddComposition = () => {
       batchGstRate: '',
     });
   };
-  
 
   const handleUpdateStock = (id, adjustment) => {
     setInventory(
@@ -157,49 +160,47 @@ const AddComposition = () => {
     );
   };
 
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
-  const hideDatePickerExpiry = () => {
-    setisDatePickerExpiryVisible(false);
-  };
 
-  const formatMonthYear = (text) => {
+  const formatMonthYear = text => {
     // Remove any non-numeric characters
     let cleaned = text.replace(/\D/g, '');
-  
+
     if (cleaned.length > 6) {
       cleaned = cleaned.slice(0, 6); // Restrict length to MMYYYY format
     }
-  
+
     let formattedText = cleaned;
-  
+
     // Insert "-" after the month (first two digits)
     if (cleaned.length >= 3) {
       formattedText = `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`;
     }
-  
+
     return formattedText;
   };
-  
 
   const handleSelect = value => {
     setSelectedCategory({...selectedCategory, type: value});
     console.log('Selected Category:', value); // Log the selected category
-
     if (value !== 'Others') {
       setOtherCategory(''); // Clear the "Other" input if not selected
     }
     setIsModalOpen(false);
   };
 
-  const handleDateConfirm = (date) => {
-    setNewItem({ ...newItem, expiryDate: moment(date).format("DD-MM-YYYY") });
+  const handleDateConfirm = date => {
+    setNewItem({...newItem, expiryDate: moment(date).format('DD-MM-YYYY')});
     hideDatePicker();
   };
   const handleDateConfirmExpiry = date => {
     setNewItem({...newItem, batchExpiry: date.toDateString()});
-    hideDatePickerExpiry();
   };
 
   const handleCancel = async () => {
@@ -260,9 +261,10 @@ const AddComposition = () => {
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => setModalVisible(true)}>
-          <Text style={styles.addButtonText}>+ add composition </Text>
+          <Text style={styles.addButtonText}>+ Add Item</Text>
         </TouchableOpacity>
       </View>
+
       <FlatList
         data={filteredInventory}
         renderItem={renderItem}
@@ -270,10 +272,11 @@ const AddComposition = () => {
         contentContainerStyle={styles.list}
         ListEmptyComponent={() => (
           <View style={styles.emptyList}>
-            <Text style={styles.emptyText}>No items in Composition</Text>
+            <Text style={styles.emptyText}>No items in inventory</Text>
           </View>
         )}
       />
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -285,31 +288,51 @@ const AddComposition = () => {
               <Text style={styles.modalTitle}>Add New Item</Text>
 
               <TextInput
-  mode="outlined"
-  theme={customTheme}
-  label={
-    <Text>
-      Medicine Name <Text style={{ color: 'red' }}>*</Text>
-    </Text>
-  }
-  style={styles.modalInput}
-  value={newItem.name}
-  onChangeText={text => setNewItem({ ...newItem, name: text })}
-/>
+                mode="outlined"
+                theme={customTheme}
+                label={
+                  <Text>
+                    Medicine Name <Text style={{color: 'red'}}>*</Text>
+                  </Text>
+                }
+                style={styles.modalInput}
+                value={newItem.name}
+                onChangeText={text => setNewItem({...newItem, name: text})}
+              />
 
-<TextInput
-  mode="outlined"
-  theme={customTheme}
-  label="Expiry Date (MM-YYYY)"
-  style={styles.modalInput}
-  value={expiryDate}
-  onChangeText={(text) => setExpiryDate(formatMonthYear(text))}
-  keyboardType="numeric"
-  maxLength={7} // MM-YYYY is 7 characters
-/>
+              <LinearGradient
+                colors={['#4756ca', '#616dc7']}
+                style={[
+                  styles.input,
+                  {
+                    borderRadius: SCREEN_HEIGHT * 0.006,
+                    height: SCREEN_HEIGHT * 0.059,
+                  },
+                ]}>
+                <TextInput
+                  mode="flat"
+                  label="Expiry Date (MM-YYYY)"
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: 'transparent',
+                      top: SCREEN_HEIGHT * 0.0 - 6,
+                    },
+                  ]} // Ensures no black background
+                  value={expiryDate}
+                  editable={false} // Prevent manual input
+                  right={
+                    <TextInput.Icon icon="calendar" onPress={showDatePicker} />
+                  }
+                />
+              </LinearGradient>
 
               <View
-                style={{flexDirection: 'row', columnGap: SCREEN_HEIGHT * 0.02}}>
+                style={{
+                  flexDirection: 'row',
+                  columnGap: SCREEN_HEIGHT * 0.02,
+                  marginTop: 20,
+                }}>
                 <TextInput
                   mode="outlined"
                   theme={customTheme}
@@ -325,8 +348,8 @@ const AddComposition = () => {
                 <TextInput
                   mode="outlined"
                   theme={customTheme}
-                  label="Number of Packs"
-                  style={styles.Packinputs}
+                  label="No of Packs"
+                  style={[styles.Packinputs,{width:170}]}
                   value={newItem.numberOfPacks}
                   onChangeText={text =>
                     setNewItem({...newItem, numberOfPacks: text})
@@ -367,12 +390,14 @@ const AddComposition = () => {
                 keyboardType="numeric"
               />
 
-<TouchableOpacity onPress={() => setIsModalOpen(true)} style={styles.categoryContainer}>
-  <Text style={styles.inputLabel}>
-    Category <Text style={{ color: 'red' }}>*</Text>
-  </Text>
-  <Icon name="arrow-drop-down" size={24} color="#000" />
-</TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setIsModalOpen(true)}
+                style={styles.categoryContainer}>
+                <Text style={styles.inputLabel}>
+                  Category <Text style={{color: 'red'}}>*</Text>
+                </Text>
+                <Icon name="arrow-drop-down" size={24} color="#000" />
+              </TouchableOpacity>
 
               <View style={{}}>
                 {selectedCategory.type === 'Others' && (
@@ -388,7 +413,7 @@ const AddComposition = () => {
 
                 {selectedCategory.type &&
                   selectedCategory.type !== 'Others' && (
-                    <View style={{marginTop:10}}>
+                    <View style={{marginTop: 10}}>
                       <Text
                         style={{
                           fontSize: 16,
@@ -436,31 +461,30 @@ const AddComposition = () => {
 
                           padding: 20,
                         }}>
-                     <FlatList
-  data={categories}
-  keyExtractor={(item) => item.value}
-  renderItem={({ item }) => (
-    <TouchableOpacity
-      style={{
-        padding: 15,
-      }}
-      onPress={() => handleSelect(item.value)}
-    >
-      <Text style={{ fontSize: 14, color: '#fff' }}>
-        {item.label}
-      </Text>
-    </TouchableOpacity>
-  )}
-  ItemSeparatorComponent={() => (
-    <View
-      style={{
-        height: SCREEN_HEIGHT*0.001,
-        backgroundColor: '#fff', // Line color
-        marginHorizontal: 15, // Optional margin for line
-      }}
-    />
-  )}
-/>
+                        <FlatList
+                          data={categories}
+                          keyExtractor={item => item.value}
+                          renderItem={({item}) => (
+                            <TouchableOpacity
+                              style={{
+                                padding: 15,
+                              }}
+                              onPress={() => handleSelect(item.value)}>
+                              <Text style={{fontSize: 14, color: '#fff'}}>
+                                {item.label}
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+                          ItemSeparatorComponent={() => (
+                            <View
+                              style={{
+                                height: SCREEN_HEIGHT * 0.001,
+                                backgroundColor: '#fff', // Line color
+                                marginHorizontal: 15, // Optional margin for line
+                              }}
+                            />
+                          )}
+                        />
                         <TouchableOpacity
                           style={{
                             marginTop: 10,
@@ -496,7 +520,7 @@ const AddComposition = () => {
                   theme={customTheme}
                   label={
                     <Text>
-                      Batch Date  <Text style={{ color: 'red' }}>*</Text>
+                      Batch Date <Text style={{color: 'red'}}>*</Text>
                     </Text>
                   }
                   style={styles.modalInput}
@@ -545,15 +569,13 @@ const AddComposition = () => {
 
       <KeyboardAvoidingView behavior="padding">
         <DateTimePickerModal
-         date={selectedDate}
           isVisible={isDatePickerVisible}
           mode="date"
-          onConfirm={handleDateConfirm}
+          onConfirm={handleConfirm}
           onCancel={hideDatePicker}
+          display="spinner"
         />
       </KeyboardAvoidingView>
-
-   
     </View>
   );
 };
@@ -573,7 +595,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     backgroundColor: '#f5f5f5',
-    borderRadius: 20,
+    borderRadius: 5,
     paddingHorizontal: 15,
     marginRight: 10,
     color: '#000',
@@ -620,7 +642,6 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 18,
     fontWeight: 'bold',
-
   },
   stockIndicator: {
     width: 15,
@@ -633,7 +654,7 @@ const styles = StyleSheet.create({
   itemInfo: {
     fontSize: 14,
     marginBottom: 5,
-    color:"#000"
+    color: '#000',
   },
   stockControls: {
     flexDirection: 'row',
@@ -683,8 +704,7 @@ const styles = StyleSheet.create({
   },
   Packinputs: {
     marginBottom: 15,
-
-    width: SCREEN_HEIGHT * 0.17,
+    width: SCREEN_HEIGHT * 0.172,
   },
   inputLabel: {
     fontSize: 14,
@@ -722,9 +742,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   categoryContainer: {
-    flexDirection: 'row',  // Aligns text and icon in a row
-    alignItems: 'center',  // Centers them vertically
-    justifyContent: 'space-between',  // Spaces text and icon apart
+    flexDirection: 'row', // Aligns text and icon in a row
+    alignItems: 'center', // Centers them vertically
+    justifyContent: 'space-between', // Spaces text and icon apart
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderWidth: 1,
@@ -732,6 +752,5 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: 'white',
   },
- 
 });
-export default AddComposition;
+export default InventoryScreen;

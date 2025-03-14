@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { View, StyleSheet, Text, ScrollView } from "react-native";
 import { TextInput, Button, DefaultTheme } from "react-native-paper";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { AppContext } from "../Context/AppContext";
+import { AppContext } from "../../Context/AppContext";
 
 const customTheme = {
   ...DefaultTheme,

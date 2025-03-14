@@ -8,10 +8,10 @@ import { View, Text, Image, StyleSheet, ActivityIndicator, Alert } from 'react-n
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReactNativeBiometrics from 'react-native-biometrics';
 
-// Import screens
+
 import LoginScreen from './Auth/LoginScreen';
-import DashboardScreen from './screen/HomeScreen';
-import InventoryScreen from './screen/InventoryScreen';
+import DashboardScreen from './screen/HomeScreen/HomeScreen';
+import InventoryScreen from './screen/InventoryScreen/InventoryScreen';
 import PrescriptionScreen from './screen/PrescriptionScreen';
 import DispenseScreen from './screen/DispenseScreen';
 import ProfileScreen from './screen/ProfileScreens';
@@ -20,19 +20,20 @@ import SplashScreen from './Auth/SplashScreen';
 import RegistrationScreen from './Auth/RegistrationScreen';
 import ForgotPassword from './Auth/ForgotScreen';
 import VerifyOtp from './Auth/VerifyOtp';
-import SearchScreen from './screen/SearchScreen';
-import AddProduct from './screen/AddProduct';
-import PharmacyDetails from './screen/PharmacyForm';
-import PharmacyView from './screen/PharmacyScreen';
-import LocationSearch from './screen/GetLocationPharmacy';
-import LocationConfirmation from './screen/PharmacyLocationConfirmation';
+import SearchScreen from './screen/InventoryScreen/SearchScreen';
+import AddProduct from './screen/InventoryScreen/AddProduct';
+import PharmacyDetails from './screen/PharmacyScreen/PharmacyForm';
+import PharmacyView from './screen/PharmacyScreen/PharmacyScreen';
+import LocationSearch from './screen/PharmacyScreen/GetLocationPharmacy';
+import LocationConfirmation from './screen/PharmacyScreen/PharmacyLocationConfirmation';
 import { LocationProvider } from './Context/AppContext';
-import BranchFormStore from './screen/BranchForm';
-import BranchScreen from './screen/BranchScreen';
-import BranchLocationConfirmation from './screen/BranchLocationConfirmation';
-import GetLocationBranch from './screen/GetLocationBranch';
-import SwitchBranchAndPharmacy from './screen/SwitchBranchAndPharmacy';
-import AddComposition from './screen/AddComposition';
+import BranchFormStore from './screen/BranchScreen/BranchForm';
+import BranchScreen from './screen/BranchScreen/BranchScreen';
+import BranchLocationConfirmation from './screen/BranchScreen/BranchLocationConfirmation';
+import GetLocationBranch from './screen/BranchScreen/GetLocationBranch';
+
+import AddComposition from './screen/InventoryScreen/AddCompositionForm';
+import FullGraphScreen from './screen/HomeScreen/FullGraphScreen';
 
 const rnBiometrics = new ReactNativeBiometrics();
 
@@ -57,7 +58,7 @@ const authenticateBiometrically = async () => {
   }
 };
 
-// Custom Drawer Content
+
 const CustomDrawerContent = (props) => {
   const [userData, setUserData] = useState({
     name: 'User',
@@ -138,18 +139,19 @@ const DrawerNavigator = () => (
     <Drawer.Screen name="Dispense" component={DispenseScreen} options={{ title: 'Dispense' }} />
     <Drawer.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
     <Drawer.Screen name="StaffManagement" component={StaffManagementScreen} options={{ title: 'Staff Management' }} />
-    <Drawer.Screen name="SwitchBranchAndPharmacy" component={PharmacyView}/>
+    <Drawer.Screen name="Switch Pharmacy & Branch" component={PharmacyView}/>
   </Drawer.Navigator>
 );
 
 const AuthNavigator = () => (
-  <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false }}>
+  <Stack.Navigator initialRouteName="MainApp" screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SplashScreen" component={SplashScreen} />
     <Stack.Screen name="MainApp" component={DrawerNavigator} options={{ headerShown: false }} />
+    <Stack.Screen name="FullGraph" component={FullGraphScreen} options={{ headerShown: false }} />
     <Stack.Screen name="BranchScreen" component={BranchScreen} options={{headerShown:false}} />
     <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login' }} />
     <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ headerShown:false }} />
-    <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{ title: 'Forgot Password' }} />
+    <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{ title: 'Forgot Password' ,headerTitle:'',}} />
     <Stack.Screen name="VerifyOtp" component={VerifyOtp} options={{ title: 'Verify OTP' }} />
     <Stack.Screen name="BranchFormStore" component={BranchFormStore} options={{ title: 'Add New Store' }} />
     <Stack.Screen name="SearchScreen" component={SearchScreen} options={{ headerShown: true, headerTitleStyle: { fontSize: 15 } }} />
@@ -157,9 +159,9 @@ const AuthNavigator = () => (
     <Stack.Screen name="LocationSearch" component={LocationSearch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
     <Stack.Screen name="PharmacyDetails" component={PharmacyDetails} options={{ headerTitleStyle: { fontSize: 15 } ,headerShown: false}} />
     <Stack.Screen name="PharmacyView" component={PharmacyView} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
-    <Stack.Screen name="LocationConfirmation" component={LocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
-    <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
-    <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="LocationConfirmation" component={LocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: true }} />
+    <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 }, headerTitle:'',headerShown: false }} />
+    <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 },headerTitle:'',headerShown:   false}} />
     <Stack.Screen name="AddComposition" component={AddComposition} options={{ headerTitleStyle: { fontSize: 15 }, title:"Composition",headerShown: true }} />
   </Stack.Navigator>
 );
@@ -171,6 +173,7 @@ const HomeNavigator = () => (
     <Stack.Screen name="SearchScreen" component={SearchScreen} options={{ headerShown: true, headerTitleStyle: { fontSize: 15 } }} />
     <Stack.Screen name="AddProduct" component={AddProduct} options={{ headerShown: false, headerTitleStyle: { fontSize: 15 } }} />
     <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ headerShown:false }} />
+    <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{ title: 'Forgot Password' }} />
     <Stack.Screen name="BranchScreen" component={BranchScreen} options={{headerShown:false}} />
     <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login',headerShown: false }} />
     <Stack.Screen name="BranchFormStore" component={BranchFormStore} options={{ title: 'Add New Store' }} />
@@ -178,9 +181,10 @@ const HomeNavigator = () => (
     <Stack.Screen name="PharmacyView" component={PharmacyView} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
     <Stack.Screen name="LocationSearch" component={LocationSearch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
     <Stack.Screen name="LocationConfirmation" component={LocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
-    <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
-    <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
+    <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 }, headerTitle:'',headerShown: true }} />
+    <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 },headerTitle:'',headerShown:   false}} />
     <Stack.Screen name="AddComposition" component={AddComposition} options={{ headerTitleStyle: { fontSize: 15 }, title:"Composition",headerShown: true }} />
+    <Stack.Screen name="FullGraph" component={FullGraphScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 );
 
@@ -223,6 +227,7 @@ const App = () => {
   }
 
   return (
+  
     <LocationProvider>
        <PaperProvider>
       <SafeAreaProvider>

@@ -5,7 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import { BRANCH_API } from '@env';
-import { AppContext } from '../Context/AppContext';
+import { AppContext } from '../../Context/AppContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BranchFormStore = () => {

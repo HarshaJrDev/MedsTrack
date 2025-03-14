@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -60,7 +60,6 @@ const SearchScreen = () => {
       'recentSearches',
       JSON.stringify(updatedSearches),
     );
- 
   };
 
   const fetchRecentSearches = async () => {
@@ -81,12 +80,12 @@ const SearchScreen = () => {
   const handleClearRecentSearches = async () => {
     setRecentSearches([]);
     await AsyncStorage.removeItem('recentSearches');
-    
+
     Toast.show({
       type: 'success',
       text1: 'Cleared',
       text2: 'Recent searches have been cleared.',
-      
+
       props: {
         style: {
           width: '90%',
@@ -97,7 +96,7 @@ const SearchScreen = () => {
           justifyContent: 'center',
           shadowColor: '#000',
           shadowOpacity: 0.2,
-          shadowOffset: { width: 0, height: 2 },
+          shadowOffset: {width: 0, height: 2},
           shadowRadius: 4,
           elevation: 5,
         },
@@ -117,22 +116,16 @@ const SearchScreen = () => {
       },
     });
   };
-  
+
   useEffect(() => {
     fetchRecentSearches();
   }, []);
 
   return (
     <View style={styles.Container}>
-
-      <View style={{zIndex:1,top:SCREEN_HEIGHT*0.03}} >
-      <Toast/>
-
+      <View style={{zIndex: 1, top: SCREEN_HEIGHT * 0.03}}>
+        <Toast />
       </View>
-     
-
-
-
 
       <View style={styles.MainContainer}>
         <TextInput
@@ -165,7 +158,7 @@ const SearchScreen = () => {
         storeName.length > 0 && (
           <View style={styles.noSuggestions}>
             <Image
-              source={require('../assets/Nodata.png')}
+              source={require('../../assets/Nodata.png')}
               style={{height: 100, width: 100}}
             />
             <Text style={styles.noSuggestionsText}>Not available.</Text>
@@ -185,9 +178,12 @@ const SearchScreen = () => {
                 borderRadius: 10,
               }}
               colors={['#4756ca', '#616dc7']}>
-              <TouchableOpacity onPress={()=>navigation.navigate('AddProduct')}
+              <TouchableOpacity
+                onPress={() => navigation.navigate('AddProduct')}
                 style={{justifyContent: 'center', alignItems: 'center'}}>
-                <Text style={[styles.addButtonText,{color:"#fff"}]}>Add Product</Text>
+                <Text style={[styles.addButtonText, {color: '#fff'}]}>
+                  Add Product
+                </Text>
               </TouchableOpacity>
             </LinearGradient>
           </View>
@@ -195,19 +191,19 @@ const SearchScreen = () => {
       )}
 
       <View style={styles.SearchTittle}>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+          <Text
+            style={{fontSize: SCREEN_HEIGHT * 0.02, fontFamily: 'Nunito-Bold'}}>
+            Recently Searched
+          </Text>
 
-        <View style={{flexDirection:"row",justifyContent:"space-between"}}>
-        <Text
-          style={{fontSize: SCREEN_HEIGHT * 0.02, fontFamily: 'Nunito-Bold'}}>
-          Recently Searched
-        </Text>
-
-        <TouchableOpacity style={{justifyContent:"center",alignItems:"center"}}  onPress={handleClearRecentSearches}>
-              <Text style={{color:'#4756ca'}}>Clear All</Text>
-            </TouchableOpacity>
-
+          <TouchableOpacity
+            style={{justifyContent: 'center', alignItems: 'center'}}
+            onPress={handleClearRecentSearches}>
+            <Text style={{color: '#4756ca'}}>Clear All</Text>
+          </TouchableOpacity>
         </View>
-       
+
         {recentSearches.length > 0 ? (
           <>
             <FlatList
@@ -218,11 +214,14 @@ const SearchScreen = () => {
                   style={styles.rowContainer}
                   onPress={() => handleSelectSuggestion(item)}>
                   <Text style={[styles.recentItem, {right: 20}]}>{item}</Text>
-                  <Feather name="arrow-up-right" size={20} style={styles.icon} />
+                  <Feather
+                    name="arrow-up-right"
+                    size={20}
+                    style={styles.icon}
+                  />
                 </TouchableOpacity>
               )}
             />
-           
           </>
         ) : (
           <TouchableOpacity style={styles.addButton} onPress={handleAddSearch}>
@@ -230,8 +229,6 @@ const SearchScreen = () => {
           </TouchableOpacity>
         )}
       </View>
-
-
     </View>
   );
 };

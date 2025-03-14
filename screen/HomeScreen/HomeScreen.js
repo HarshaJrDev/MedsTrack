@@ -48,7 +48,23 @@ const DashboardScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <View style={styles.chartContainer}>
+        <TouchableOpacity
+          style={styles.chartContainer}
+          onPress={() =>
+            navigation.navigate('FullGraph', {
+              type: 'bar',
+              chartProps: {
+                barWidth: 22,
+                noOfSections: 3,
+                barBorderRadius: 4,
+                frontColor: 'lightgray',
+                data: barData,
+                yAxisThickness: 0,
+                xAxisThickness: 0,
+              },
+            })
+          }
+        >
           <Text style={styles.chartTitle}>Stock Levels</Text>
           <BarChart
             barWidth={22}
@@ -59,9 +75,26 @@ const DashboardScreen = ({ navigation }) => {
             yAxisThickness={0}
             xAxisThickness={0}
           />
-        </View>
+        </TouchableOpacity>
 
-        <View style={styles.chartContainer}>
+        <TouchableOpacity
+          style={styles.chartContainer}
+          onPress={() =>
+            navigation.navigate('FullGraph', {
+              type: 'line',
+              chartProps: {
+                data: lineData,
+                thickness: 3,
+                color: '#3f4fb8',
+                hideDataPoints: true,
+                startFillColor: '#b6c1ee',
+                startOpacity: 0.3,
+                endOpacity: 0.1,
+                spacing: 40,
+              },
+            })
+          }
+        >
           <Text style={styles.chartTitle}>Orders Trend</Text>
           <LineChart
             data={lineData}
@@ -73,28 +106,7 @@ const DashboardScreen = ({ navigation }) => {
             endOpacity={0.1}
             spacing={40}
           />
-        </View>
-
-        <View style={styles.menuContainer}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('Inventory')}
-          >
-            <Text style={styles.menuText}>Inventory</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('Prescriptions')}
-          >
-            <Text style={styles.menuText}>Prescriptions</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('Dispense')}
-          >
-            <Text style={styles.menuText}>Dispense Medication</Text>
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
       </ScrollView>
     </LinearGradient>
   );
@@ -148,25 +160,6 @@ const styles = StyleSheet.create({
     color: '#3f4fb8',
     marginBottom: 10,
     textAlign: 'center',
-  },
-  menuContainer: {
-    padding: 20,
-  },
-  menuItem: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 8,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  menuText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
   },
 });
 

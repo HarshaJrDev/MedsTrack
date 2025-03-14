@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import RoleManagement from '../types/RoleManagement';
 import ActivityLog from '../components/ActivityLog';
+import RNPickerSelect from 'react-native-picker-select';
 import {ROLES, PERMISSIONS} from '../types/staffTypes';
 
 // Sample staff data
@@ -187,7 +188,7 @@ const StaffManagementScreen = () => {
     );
   };
 
-  // Component for staff card
+
   const renderStaffItem = ({item}) => (
     <View style={styles.staffCard}>
       <View style={styles.staffHeader}>
@@ -206,6 +207,8 @@ const StaffManagementScreen = () => {
         <Text style={styles.detailText}>Email: {item.email}</Text>
         <Text style={styles.detailText}>Phone: {item.phone}</Text>
       </View>
+
+      
 
       <View style={styles.actionButtons}>
         <TouchableOpacity
@@ -322,23 +325,39 @@ const StaffManagementScreen = () => {
 
               <View style={styles.roleSelectContainer}>
                 <Text style={styles.inputLabel}>Select Role *</Text>
-                {Object.values(ROLES).map(role => (
-                  <TouchableOpacity
-                    key={role}
-                    style={[
-                      styles.roleOption,
-                      newStaff.role === role && styles.selectedRoleOption,
-                    ]}
-                    onPress={() => setNewStaff({...newStaff, role})}>
-                    <Text
-                      style={[
-                        styles.roleOptionText,
-                        newStaff.role === role && styles.selectedRoleOptionText,
-                      ]}>
-                      {role.charAt(0).toUpperCase() + role.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                <RNPickerSelect
+  onValueChange={(value) => setNewStaff({ ...newStaff, role: value })}
+  items={Object.values(ROLES).map((role) => ({
+    label: role.charAt(0).toUpperCase() + role.slice(1), // Capitalize first letter
+    value: role,
+  }))}
+  value={newStaff.role}
+  style={{
+    inputIOS: {
+      fontSize: 16,
+      padding: 10,
+      borderWidth: 1,
+      borderColor: 'gray',
+      borderRadius: 5,
+      color: 'black',
+      marginBottom: 10,
+      backgroundColor: '#f9f9f9', // Light gray background
+    },
+    inputAndroid: {
+      fontSize: 16,
+      padding: 10,
+      borderWidth: 1,
+      borderColor: 'gray',
+      borderRadius: 5,
+      color: 'black',
+      marginBottom: 10,
+      backgroundColor: '#f9f9f9', // Light gray background
+    },
+    placeholder: {
+      color: 'gray',
+    },
+  }}
+/>
               </View>
 
               <TextInput
@@ -395,13 +414,11 @@ const StaffManagementScreen = () => {
         </View>
       </Modal>
 
-      {/* Role Management Modal */}
-      <RoleManagement
-        visible={roleModalVisible}
-        onClose={() => setRoleModalVisible(false)}
-        onSave={handleRoleUpdate}
-        initialRole={selectedStaff?.role}
-      />
+
+
+    
+
+
 
       {/* Activity Log Modal */}
       <ActivityLog
@@ -523,7 +540,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#ff6b6b',
+    backgroundColor: '#4756ca',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
@@ -556,10 +573,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#ff6b6b',
+    backgroundColor: '#4756ca',
   },
   saveButton: {
-    backgroundColor: '#51cf66',
+    backgroundColor: '#4756ca',
   },
   buttonText: {
     color: '#fff',
@@ -581,16 +598,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   filtersContainer: {
-    padding: 10,
-    backgroundColor: '#fff',
+    padding: 10, 
+    backgroundColor: '#fff', 
+    borderRadius: 12, // Slightly larger for a smoother look
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 5,
+    elevation: 4, // Stronger shadow on Android
   },
+  
   filterButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#f0f0f0',
-    marginRight: 10,
+    paddingHorizontal: 18, // More padding for a premium feel
+    paddingVertical: 10,
+    borderRadius: 25, // More rounded for a pill-shaped look
+    backgroundColor: '#E3F2FD', // Light blue tint for a fresh look
+    marginRight: 12,
+    borderWidth: 1, 
+    borderColor: '#BBDEFB', // Soft border to enhance visibility
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1976D2', // Darker blue for contrast
+    textTransform: 'capitalize', // Consistent text style
+  },
+  
   activeFilter: {
     backgroundColor: '#2196F3',
   },
@@ -613,6 +649,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
+
   },
   statValue: {
     fontSize: 24,
@@ -642,7 +679,7 @@ const styles = StyleSheet.create({
   },
   selectedRoleOption: {
     backgroundColor: '#2196F3',
-    borderColor: '#2196F3',
+    borderColor: '#2196e2',
   },
   roleOptionText: {
     color: '#333',
@@ -675,6 +712,8 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
+
+  
 });
 
 export default StaffManagementScreen;

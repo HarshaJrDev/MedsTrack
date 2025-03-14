@@ -8,7 +8,7 @@ export const LocationProvider = ({ children }) => {
   const [landmark, setLandmark] = useState("");
   const [lat, setLat] = useState(null);
   const [lon, setLon] = useState(null);
-  const [accessToken, setAccessToken] = useState(""); // ✅ Added Access Token State
+  const [accessToken, setAccessToken] = useState("");
 
   return (
     <AppContext.Provider
@@ -23,10 +23,9 @@ export const LocationProvider = ({ children }) => {
         setLat,
         lon,
         setLon,
-        accessToken,      // ✅ Provide access token globally
-        setAccessToken,   // ✅ Function to update access token
-      }}
-    >
+        accessToken,      
+        setAccessToken,   
+      }}>
       {children}
     </AppContext.Provider>
   );

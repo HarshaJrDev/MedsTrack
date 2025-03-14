@@ -11,6 +11,8 @@ import {
   Modal,
   ScrollView,
   Alert,
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 import { launchCamera } from 'react-native-image-picker';
 
@@ -31,16 +33,37 @@ const DispenseScreen = () => {
   const [filteredMedicines, setFilteredMedicines] = useState([]);
 
   // Handle taking prescription photo
+
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+      );
+  
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        Alert.alert('Permission Denied', 'Camera access is required');
+        return false;
+      }
+    }
+    return true;
+  };
   const handleTakePhoto = async () => {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) return;
+  
     const options = {
       mediaType: 'photo',
       quality: 1,
       saveToPhotos: false,
     };
-
+  
     try {
       const result = await launchCamera(options);
-      if (result.assets && result.assets[0]) {
+      if (result.didCancel) {
+        Alert.alert('Cancelled', 'User cancelled camera');
+      } else if (result.errorCode) {
+        Alert.alert('Error', result.errorMessage || 'Failed to take photo');
+      } else if (result.assets && result.assets[0]) {
         setPrescriptionImage(result.assets[0]);
       }
     } catch (error) {

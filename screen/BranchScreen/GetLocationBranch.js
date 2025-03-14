@@ -3,6 +3,7 @@ import { View, StyleSheet, ActivityIndicator, Text, Modal, TouchableOpacity, Tex
 import { WebView } from 'react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const GetLocationBranch = () => {
   const navigation = useNavigation();
@@ -13,33 +14,35 @@ const GetLocationBranch = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const webViewRef = useRef(null);
-  const [isAutoLocationEnabled, setIsAutoLocationEnabled] = useState(false);
 
   // Function to search for locations
-  const searchLocation = (query) => {
-    setSearchQuery(query);
-    if (query.length > 2) {
-      setShowSearchResults(true);
-      // Inject search operation into WebView
-      const searchScript = `
-        fetch('https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}')
-          .then(response => response.json())
-          .then(data => {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'SEARCH_RESULTS',
-              results: data.slice(0, 5)
-            }));
-          })
-          .catch(error => console.error('Search error:', error));
-      `;
-      webViewRef.current.injectJavaScript(searchScript);
-    } else {
-      setShowSearchResults(false);
-      setSearchResults([]);
-    }
-  };
+const searchLocation = (query) => {
+  setSearchQuery(query);
 
-  // Function to select a search result
+  if (query.length > 2) {
+    setShowSearchResults(true);
+
+    const searchScript = (query, countryCode = 'IN') => `
+      fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=${countryCode}&q=${encodeURIComponent(query)}')
+        .then(response => response.json())
+        .then(data => {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'SEARCH_RESULTS',
+            results: data.slice(0, 5)
+          }));
+        })
+        .catch(error => console.error('Search error:', error));
+    `;
+    setLoading(true);
+    // Ensure WebView reference exists before injecting script
+    if (webViewRef.current) {
+      webViewRef.current.injectJavaScript(searchScript(query));
+    }
+  } else {
+    setShowSearchResults(false);
+    setSearchResults([]);
+  }
+};
   const selectSearchResult = (item) => {
     setShowSearchResults(false);
     setSearchQuery(item.display_name);
@@ -220,25 +223,29 @@ const GetLocationBranch = () => {
     </html>
   `;
 
-  const handleMessage = (event) => {
+  const handleMessage = async (event) => {
     const message = event.nativeEvent.data;
     if (message === "MAP_LOADED") {
       setLoading(false);
-      // NOT automatically getting location on load anymore
     } else {
       try {
         const data = JSON.parse(message);
-        
+  
         if (data.type === 'SEARCH_RESULTS') {
           setSearchResults(data.results);
         } else if (data.type === 'LOCATION_SELECTED') {
-          setSelectedLocation({
+          const selectedLocation = {
             lat: data.lat,
             lon: data.lon,
             fullAddress: data.fullAddress,
             formattedAddress: data.formattedAddress,
             addressComponents: data.addressComponents
-          });
+          };
+  
+          // Store the selected location in AsyncStorage
+          await AsyncStorage.setItem("favoriteLocations", JSON.stringify(selectedLocation));
+          
+          setSelectedLocation(selectedLocation);
           setModalVisible(true);
         } else if (data.type === 'LOCATION_ERROR') {
           console.warn('Location error:', data.message);
@@ -248,6 +255,7 @@ const GetLocationBranch = () => {
       }
     }
   };
+  
 
   // Function to confirm the center location
   const confirmCenterLocation = () => {
@@ -255,6 +263,37 @@ const GetLocationBranch = () => {
     webViewRef.current.injectJavaScript(script);
   };
 
+  const saveAsFavorite = async () => {
+    try {
+      if (!selectedLocation) {
+        alert("No location selected!");
+        return;
+      }
+  
+      // Retrieve existing favorites from AsyncStorage
+      const existingFavorites = await AsyncStorage.getItem("favoriteLocations");
+      
+      // Ensure favorites is an array
+      let favorites = existingFavorites ? JSON.parse(existingFavorites) : [];
+  
+      // Check if favorites is not an array (prevent TypeError)
+      if (!Array.isArray(favorites)) {
+        favorites = [];
+      }
+  
+      // Add the new location to favorites
+      favorites.push(selectedLocation);
+  
+      // Save updated favorites list back to AsyncStorage
+      await AsyncStorage.setItem("favoriteLocations", JSON.stringify(favorites));
+  
+      alert("Location saved as favorite!");
+    } catch (error) {
+      console.error("Error saving favorite location:", error);
+    }
+  };
+  
+  
   return (
     <View style={styles.container}>
       {loading && (
@@ -275,7 +314,6 @@ const GetLocationBranch = () => {
           geolocationEnabled={true}
         />
         
-        {/* Ola-styled search bar overlay */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBarWrapper}>
             <Icon name="arrow-back" size={24} color="#000" style={styles.backIcon} 
@@ -301,39 +339,49 @@ const GetLocationBranch = () => {
             </View>
           </View>
           
-          {/* Search Results */}
+
           {showSearchResults && (
             <ScrollView style={styles.searchResults}>
-              {searchResults.length > 0 ? (
-                searchResults.map((item, index) => (
-                  <TouchableOpacity 
-                    key={index} 
-                    style={styles.searchResultItem}
-                    onPress={() => selectSearchResult(item)}
-                  >
-                    <Icon name="place" size={20} color="#4756ca" />
-                    <View style={styles.resultTextContainer}>
-                      <Text style={styles.resultPrimaryText} numberOfLines={1}>
-                        {item.address?.road || item.address?.name || 'Location'}
-                      </Text>
-                      <Text style={styles.resultSecondaryText} numberOfLines={1}>
-                        {item.display_name}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))
-              ) : searchQuery.length > 2 ? (
-                <View style={styles.noResultsContainer}>
-                  <Text style={styles.noResultsText}>No results found</Text>
-                </View>
-              ) : null}
+           {searchResults.length > 0 ? (
+  searchResults.map((item, index) => {
+    const matchIndex = item.display_name.toLowerCase().indexOf(searchQuery.toLowerCase());
+    let beforeMatch = item.display_name.substring(0, matchIndex);
+    let matchText = item.display_name.substring(matchIndex, matchIndex + searchQuery.length);
+    let afterMatch = item.display_name.substring(matchIndex + searchQuery.length);
+
+    return (
+      <TouchableOpacity 
+        key={index} 
+        style={styles.searchResultItem}
+        onPress={() => selectSearchResult(item)}
+      >
+        <Icon name="place" size={20} color="#4756ca" />
+        <View style={styles.resultTextContainer}>
+          <Text style={styles.resultPrimaryText} >
+            {beforeMatch}
+            <Text style={styles.highlight}>{matchText}</Text>
+            {afterMatch}
+          </Text>
+          <Text style={styles.resultSecondaryText} >
+            {item.display_name}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  })
+) : searchQuery.length > 2 ? (
+  <View style={styles.noResultsContainer}>
+    <Text style={styles.noResultsText}>No results found</Text>
+  </View>
+) : null}
+
             </ScrollView>
           )}
         </View>
         
-        {/* Action buttons */}
+
         <View style={styles.actionButtonsContainer}>
-          {/* Current location button */}
+
           <TouchableOpacity 
             style={styles.actionButton}
             onPress={getCurrentLocation}
@@ -341,7 +389,7 @@ const GetLocationBranch = () => {
             <Icon name="my-location" size={22} color="#fff" />
           </TouchableOpacity>
           
-          {/* Confirm center location button */}
+
           <TouchableOpacity 
             style={[styles.actionButton, styles.confirmPinButton]}
             onPress={confirmCenterLocation}
@@ -352,7 +400,7 @@ const GetLocationBranch = () => {
         </View>
       </View>
 
-      {/* Ola-themed confirmation modal with updated colors */}
+
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -366,10 +414,10 @@ const GetLocationBranch = () => {
               </View>
               <View style={styles.addressTextContainer}>
                 <Text style={styles.addressLabel}>Selected Location</Text>
-                <Text style={styles.addressMain} numberOfLines={1}>
+                <Text style={styles.addressMain} >
                   {selectedLocation?.formattedAddress || selectedLocation?.fullAddress}
                 </Text>
-                <Text style={styles.addressSecondary} numberOfLines={2}>
+                <Text style={styles.addressSecondary} >
                   {selectedLocation?.fullAddress}
                 </Text>
               </View>
@@ -394,10 +442,11 @@ const GetLocationBranch = () => {
             </View>
             
             <View style={styles.additionalOptions}>
-              <TouchableOpacity style={styles.optionItem}>
-                <Icon name="star" size={20} color="#616dc7" />
-                <Text style={styles.optionText}>Save as favorite</Text>
-              </TouchableOpacity>
+            <TouchableOpacity style={styles.optionItem} onPress={saveAsFavorite}>
+  <Icon name="star" size={20} color="#616dc7" />
+  <Text style={styles.optionText}>Save as favorite</Text>
+</TouchableOpacity>
+
               <TouchableOpacity style={styles.optionItem}>
                 <Icon name="share" size={20} color="#616dc7" />
                 <Text style={styles.optionText}>Share this location</Text>
@@ -470,7 +519,6 @@ const styles = StyleSheet.create({
     color: '#333',
     padding: 0,
   },
-  // Search results styles
   searchResults: {
     backgroundColor: 'white',
     marginHorizontal: 12,
@@ -638,6 +686,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 14,
     color: '#333',
+  },
+  highlight: {
+    fontWeight: 'bold',
+    color: '#4756ca', // Change to any color you prefer
   },
 });
 

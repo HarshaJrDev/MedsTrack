@@ -83,26 +83,23 @@ const ProductForm = () => {
         onDismiss={() => setMenuVisible(false)}
         anchor={
           <TouchableWithoutFeedback onPress={() => setMenuVisible(true)}>
-                     <LinearGradient 
-            style={{borderRadius: 4}}
-            colors={['#4756ca', '#616dc7']}>
-            <Button
-              style={{
-                width: screenHeight * 0.41,
-                height: screenHeight * 0.04,
-                alignItems: 'center',
-                marginBottom: screenHeight * 0.02,
-                top: 6,
-              }}
-              mode="text"
-              textColor="white"
-              >
-              {productForm || 'Select Product Form'}
-            </Button>
-          </LinearGradient>
-
+            <LinearGradient
+              style={{borderRadius: 4}}
+              colors={['#4756ca', '#616dc7']}>
+              <Button
+                style={{
+                  width: screenHeight * 0.41,
+                  height: screenHeight * 0.04,
+                  alignItems: 'center',
+                  marginBottom: screenHeight * 0.02,
+                  top: 6,
+                }}
+                mode="text"
+                textColor="white">
+                {productForm || 'Select Product Form'}
+              </Button>
+            </LinearGradient>
           </TouchableWithoutFeedback>
- 
         }>
         <FlatList
           data={filteredProductForms}

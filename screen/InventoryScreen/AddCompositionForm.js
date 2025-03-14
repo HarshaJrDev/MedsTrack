@@ -1,4 +1,3 @@
-
 import React, {useState} from 'react';
 import {
   View,
@@ -17,8 +16,8 @@ import {TextInput, DefaultTheme} from 'react-native-paper';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from 'react-native-vector-icons/MaterialIcons'; 
-import moment from "moment";
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import moment from 'moment';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -31,19 +30,19 @@ const customTheme = {
   },
 };
 
-const InventoryScreen = () => {
+const AddComposition = () => {
   const [selectedCategory, setSelectedCategory] = useState({type: ''});
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inventory, setInventory] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [otherCategory, setOtherCategory] = useState('');
-
+  const [isDatePickerExpiryVisible, setisDatePickerExpiryVisible] =
     useState(false);
 
-    const [expiryDate, setExpiryDate] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
 
   const [newItem, setNewItem] = useState({
     name: '',
@@ -61,6 +60,9 @@ const InventoryScreen = () => {
     batchExpiry: '',
     hsnCode: '',
     batchGstRate: '',
+    CompositionName: '',
+    StrengthValue: '',
+    Strengthtype: '',
   });
 
   const categories = [
@@ -82,11 +84,6 @@ const InventoryScreen = () => {
     item.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleConfirm = (date) => {
-    setExpiryDate(moment(date).format("MM-YYYY"));
-    hideDatePicker();
-  };
-
   const handleAddItem = () => {
     const item = {
       id: Date.now().toString(),
@@ -102,28 +99,29 @@ const InventoryScreen = () => {
       ptr: parseFloat(newItem.ptr || '0'),
       batchGstRate: parseFloat(newItem.batchGstRate || '0'),
     };
-  
+
     // Validate required fields
     if (!item.name) {
       Alert.alert('Error', 'Medicine Name is required');
       return;
     }
-  
+
     if (!item.expiryDate) {
       Alert.alert('Error', 'Expiry Date is required');
       return;
     }
-  
-    if (!item.category) { // ✅ FIXED: Correct validation for category
+
+    if (!item.category) {
+      // ✅ FIXED: Correct validation for category
       Alert.alert('Error', 'Category is required');
       return;
     }
-  
+
     setInventory([...inventory, item]); // Add item to inventory
-  
+
     // ✅ Ensure modal opens when needed
     setModalVisible(true);
-  
+
     // Reset form
     setNewItem({
       name: '',
@@ -141,10 +139,15 @@ const InventoryScreen = () => {
       batchExpiry: '',
       hsnCode: '',
       batchGstRate: '',
+      CompositionName: '',
+      StrengthValue: '',
+      Strengthtype: '',
     });
   };
-  
 
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
   const handleUpdateStock = (id, adjustment) => {
     setInventory(
       inventory.map(item => {
@@ -161,50 +164,48 @@ const InventoryScreen = () => {
     );
   };
 
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
-
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
+  const hideDatePickerExpiry = () => {
+    setisDatePickerExpiryVisible(false);
+  };
 
-
-  const formatMonthYear = (text) => {
+  const formatMonthYear = text => {
     // Remove any non-numeric characters
     let cleaned = text.replace(/\D/g, '');
-  
+
     if (cleaned.length > 6) {
       cleaned = cleaned.slice(0, 6); // Restrict length to MMYYYY format
     }
-  
+
     let formattedText = cleaned;
-  
+
     // Insert "-" after the month (first two digits)
     if (cleaned.length >= 3) {
       formattedText = `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`;
     }
-  
+
     return formattedText;
   };
-  
 
   const handleSelect = value => {
     setSelectedCategory({...selectedCategory, type: value});
     console.log('Selected Category:', value); // Log the selected category
+
     if (value !== 'Others') {
       setOtherCategory(''); // Clear the "Other" input if not selected
     }
     setIsModalOpen(false);
   };
 
-  const handleDateConfirm = (date) => {
-    setNewItem({ ...newItem, expiryDate: moment(date).format("DD-MM-YYYY") });
+  const handleDateConfirm = date => {
+    setExpiryDate(moment(date).format('MM-YYYY'));
     hideDatePicker();
   };
-  const handleDateConfirmExpiry = (date) => {
-    setNewItem({ ...newItem, batchExpiry: date.toDateString() });
-
+  const handleDateConfirmExpiry = date => {
+    setNewItem({...newItem, batchExpiry: date.toDateString()});
+    hideDatePickerExpiry();
   };
 
   const handleCancel = async () => {
@@ -265,10 +266,14 @@ const InventoryScreen = () => {
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => setModalVisible(true)}>
-          <Text style={styles.addButtonText}>+ Add Item</Text>
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={styles.addButtonText}>
+            + Add composition{' '}
+          </Text>
         </TouchableOpacity>
       </View>
-
       <FlatList
         data={filteredInventory}
         renderItem={renderItem}
@@ -276,11 +281,10 @@ const InventoryScreen = () => {
         contentContainerStyle={styles.list}
         ListEmptyComponent={() => (
           <View style={styles.emptyList}>
-            <Text style={styles.emptyText}>No items in inventory</Text>
+            <Text style={styles.emptyText}>No items in Composition</Text>
           </View>
         )}
       />
-
       <Modal
         animationType="slide"
         transparent={true}
@@ -291,246 +295,64 @@ const InventoryScreen = () => {
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Add New Item</Text>
 
-              <TextInput
-  mode="outlined"
-  theme={customTheme}
-  label={
-    <Text>
-      Medicine Name <Text style={{ color: 'red' }}>*</Text>
-    </Text>
-  }
-  style={styles.modalInput}
-  value={newItem.name}
-  onChangeText={text => setNewItem({ ...newItem, name: text })}
-/>
-
-
-        <TextInput
-          mode="outlined"
-          label="Expiry Date (MM-YYYY)"
-          style={styles.input}
-          value={expiryDate}
-          editable={false} // Prevent manual input
-          right={<TextInput.Icon icon="calendar" onPress={showDatePicker} />}
-        />
-
-
-              <View
-                style={{flexDirection: 'row', columnGap: SCREEN_HEIGHT * 0.02,marginTop:20}}>
-                <TextInput
-                  mode="outlined"
-                  theme={customTheme}
-                  label="Unit Per Pack"
-                  style={styles.Packinputs}
-                  value={newItem.unitPerPack}
-                  onChangeText={text =>
-                    setNewItem({...newItem, unitPerPack: text})
-                  }
-                  keyboardType="numeric"
-                />
-
-                <TextInput
-                  mode="outlined"
-                  theme={customTheme}
-                  label="No of Packs"
-                  style={styles.Packinputs}
-                  value={newItem.numberOfPacks}
-                  onChangeText={text =>
-                    setNewItem({...newItem, numberOfPacks: text})
-                  }
-                  keyboardType="numeric"
-                />
-              </View>
-
-              <TextInput
+              {/* <TextInput
                 mode="outlined"
                 theme={customTheme}
-                label=" ₹ MRP"
-                style={styles.modalInput}
-                value={newItem.mrp}
-                onChangeText={text => setNewItem({...newItem, mrp: text})}
-                keyboardType="decimal-pad"
-              />
-
-              <TextInput
-                mode="outlined"
-                theme={customTheme}
-                label=" ₹ PTR"
-                style={styles.modalInput}
-                value={newItem.ptr}
-                onChangeText={text => setNewItem({...newItem, ptr: text})}
-                keyboardType="decimal-pad"
-              />
-
-              <TextInput
-                mode="outlined"
-                theme={customTheme}
-                label="Loose Units (If Any)"
-                style={styles.modalInput}
-                value={newItem.looseUnits}
-                onChangeText={text =>
-                  setNewItem({...newItem, looseUnits: text})
+                label={
+                  <Text>
+                    Medicine Name <Text style={{color: 'red'}}>*</Text>
+                  </Text>
                 }
+                style={styles.modalInput}
+                value={newItem.name}
+                onChangeText={text => setNewItem({...newItem, name: text})}
+              /> */}
+              <TextInput
+                mode="outlined"
+                theme={customTheme}
+                label={
+                  <Text>
+                    Composition Name <Text style={{color: 'red'}}>*</Text>
+                  </Text>
+                }
+                style={styles.modalInput}
+                value={newItem.CompositionName}
+                onChangeText={text => setNewItem({...newItem, name: text})}
+              />
+              <TextInput
+                mode="outlined"
+                theme={customTheme}
+                label={
+                  <Text>
+                    Strength Value <Text style={{color: 'red'}}>*</Text>
+                  </Text>
+                }
+                style={styles.modalInput}
+                value={newItem.StrengthValue}
+                onChangeText={text =>
+                  setNewItem({...newItem, StrengthValue: text})
+                } // ✅ FIXED
                 keyboardType="numeric"
               />
 
-<TouchableOpacity onPress={() => setIsModalOpen(true)} style={styles.categoryContainer}>
-  <Text style={styles.inputLabel}>
-    Category <Text style={{ color: 'red' }}>*</Text>
-  </Text>
-  <Icon name="arrow-drop-down" size={24} color="#000" />
-</TouchableOpacity>
-
-              <View style={{}}>
-                {selectedCategory.type === 'Others' && (
-                  <TextInput
-                    mode="outlined"
-                    theme={customTheme}
-                    label="Others"
-                    style={[styles.modalInput, {width: '100%'}]}
-                    value={otherCategory}
-                    onChangeText={text => setOtherCategory(text)}
-                  />
-                )}
-
-                {selectedCategory.type &&
-                  selectedCategory.type !== 'Others' && (
-                    <View style={{marginTop:10}}>
-                      <Text
-                        style={{
-                          fontSize: 16,
-                          fontWeight: 'bold',
-                          color: '#000',
-                          fontFamily: 'Nunito-Regular',
-                        }}>
-                        Selected Category: {selectedCategory.type}
-                      </Text>
-                    </View>
-                  )}
-
-                {selectedCategory.type === 'Others' && otherCategory !== '' && (
-                  <View style={{marginTop: 10}}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 'bold',
-                        color: '#000',
-                        fontFamily: 'Nunito-Regular',
-                      }}>
-                      Other Category: {otherCategory}
-                    </Text>
-                  </View>
-                )}
-
-                <Modal
-                  transparent={true}
-                  visible={isModalOpen}
-                  animationType="slide"
-                  onRequestClose={() => setIsModalOpen(false)}>
-                  <View
-                    style={{
-                      flex: 1,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    }}>
-                    <LinearGradient
-                      style={{borderRadius: 10}}
-                      colors={['#4756ca', '#4756ca']}>
-                      <View
-                        style={{
-                          width: '80%',
-
-                          padding: 20,
-                        }}>
-                     <FlatList
-  data={categories}
-  keyExtractor={(item) => item.value}
-  renderItem={({ item }) => (
-    <TouchableOpacity
-      style={{
-        padding: 15,
-      }}
-      onPress={() => handleSelect(item.value)}
-    >
-      <Text style={{ fontSize: 14, color: '#fff' }}>
-        {item.label}
-      </Text>
-    </TouchableOpacity>
-  )}
-  ItemSeparatorComponent={() => (
-    <View
-      style={{
-        height: SCREEN_HEIGHT*0.001,
-        backgroundColor: '#fff', // Line color
-        marginHorizontal: 15, // Optional margin for line
-      }}
-    />
-  )}
-/>
-                        <TouchableOpacity
-                          style={{
-                            marginTop: 10,
-                            padding: 15,
-                            backgroundColor: '#3f4fb8',
-                            borderRadius: 5,
-                            alignItems: 'center',
-                          }}
-                          onPress={() => setIsModalOpen(false)}>
-                          <Text style={{color: '#fff', fontSize: 14}}>
-                            Close
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </LinearGradient>
-                  </View>
-                </Modal>
-              </View>
+              <TextInput
+                mode="outlined"
+                theme={customTheme}
+                label={
+                  <Text>
+                    Strength Type (mg/ml/g){' '}
+                    <Text style={{color: 'red'}}>*</Text>
+                  </Text>
+                }
+                style={styles.modalInput}
+                value={newItem.Strengthtype}
+                onChangeText={text =>
+                  setNewItem({...newItem, Strengthtype: text})
+                } // ✅ FIXED
+              />
 
               <View style={{marginTop: 20}}>
-                <Text style={styles.inputLabel}>Batch Details</Text>
-
-                <TextInput
-                  mode="outlined"
-                  theme={customTheme}
-                  label="Batch No"
-                  style={styles.modalInput}
-                  value={newItem.batchNo}
-                  onChangeText={text => setNewItem({...newItem, batchNo: text})}
-                />
-                <TextInput
-                  mode="outlined"
-                  theme={customTheme}
-                  label={
-                    <Text>
-                      Batch Date  <Text style={{ color: 'red' }}>*</Text>
-                    </Text>
-                  }
-                  style={styles.modalInput}
-                  value={newItem.batchExpiry}
-                  onFocus={() => setisDatePickerExpiryVisible(true)}
-                />
-
-                <TextInput
-                  mode="outlined"
-                  theme={customTheme}
-                  label="HSN Code"
-                  style={styles.modalInput}
-                  value={newItem.hsnCode}
-                  onChangeText={text => setNewItem({...newItem, hsnCode: text})}
-                />
-
-                <TextInput
-                  mode="outlined"
-                  theme={customTheme}
-                  label="Batch GST Rate"
-                  style={styles.modalInput}
-                  value={newItem.batchGstRate}
-                  onChangeText={text =>
-                    setNewItem({...newItem, batchGstRate: text})
-                  }
-                  keyboardType="decimal-pad"
-                />
+   
 
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
@@ -549,18 +371,6 @@ const InventoryScreen = () => {
           </View>
         </ScrollView>
       </Modal>
-
-      <KeyboardAvoidingView behavior="padding">
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        onConfirm={handleConfirm}
-        onCancel={hideDatePicker}
-        display="spinner"
-      />
-      </KeyboardAvoidingView>
-
-   
     </View>
   );
 };
@@ -580,7 +390,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     backgroundColor: '#f5f5f5',
-    borderRadius: 20,
+    borderRadius: 5,
     paddingHorizontal: 15,
     marginRight: 10,
     color: '#000',
@@ -592,10 +402,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 20,
+    width: 100,
   },
   addButtonText: {
     color: '#fff',
     fontSize: 16,
+    textAlign: 'center',
   },
   list: {
     paddingBottom: 60,
@@ -627,7 +439,6 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 18,
     fontWeight: 'bold',
-
   },
   stockIndicator: {
     width: 15,
@@ -640,7 +451,7 @@ const styles = StyleSheet.create({
   itemInfo: {
     fontSize: 14,
     marginBottom: 5,
-    color:"#000"
+    color: '#000',
   },
   stockControls: {
     flexDirection: 'row',
@@ -667,17 +478,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   modalContainer: {
-    flex: 1,
+
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingVertical: 20,
+marginTop:60
   },
   modalContent: {
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 20,
     width: SCREEN_WIDTH - 40,
+    flex: 1,
+    
   },
   modalTitle: {
     fontSize: 18,
@@ -690,7 +502,8 @@ const styles = StyleSheet.create({
   },
   Packinputs: {
     marginBottom: 15,
-    width: SCREEN_HEIGHT * 0.172,
+
+    width: SCREEN_HEIGHT * 0.17,
   },
   inputLabel: {
     fontSize: 14,
@@ -728,9 +541,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   categoryContainer: {
-    flexDirection: 'row',  // Aligns text and icon in a row
-    alignItems: 'center',  // Centers them vertically
-    justifyContent: 'space-between',  // Spaces text and icon apart
+    flexDirection: 'row', // Aligns text and icon in a row
+    alignItems: 'center', // Centers them vertically
+    justifyContent: 'space-between', // Spaces text and icon apart
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderWidth: 1,
@@ -738,6 +551,5 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: 'white',
   },
- 
 });
-export default InventoryScreen;
+export default AddComposition;
