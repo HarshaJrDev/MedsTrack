@@ -14,7 +14,7 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
-import { launchCamera } from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 // Sample medicine data - Replace with your actual data
 const medicineInventory = [
@@ -24,7 +24,7 @@ const medicineInventory = [
   // Add more medicines as needed
 ];
 
-const DispenseScreen = () => {
+const DispenseScreen = ({navigation}) => {
   const [patientName, setPatientName] = useState('');
   const [prescriptionImage, setPrescriptionImage] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,23 +33,26 @@ const DispenseScreen = () => {
   const [filteredMedicines, setFilteredMedicines] = useState([]);
 
   // Handle taking prescription photo
-
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'App needs access to your camera',
+          buttonPositive: 'OK',
+        }
       );
-  
-      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        Alert.alert('Permission Denied', 'Camera access is required');
-        return false;
-      }
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
     }
-    return true;
+    return true; // iOS handles permissions differently
   };
   const handleTakePhoto = async () => {
     const hasPermission = await requestCameraPermission();
-    if (!hasPermission) return;
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'You need to grant camera permission.');
+      return;
+    }
   
     const options = {
       mediaType: 'photo',
@@ -59,18 +62,39 @@ const DispenseScreen = () => {
   
     try {
       const result = await launchCamera(options);
+  
       if (result.didCancel) {
         Alert.alert('Cancelled', 'User cancelled camera');
-      } else if (result.errorCode) {
-        Alert.alert('Error', result.errorMessage || 'Failed to take photo');
-      } else if (result.assets && result.assets[0]) {
+      } else if (result.errorMessage) {
+        Alert.alert('Error', result.errorMessage);
+      } else if (result.assets && result.assets.length > 0) {
         setPrescriptionImage(result.assets[0]);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to take photo');
     }
   };
-
+  
+  const handlePickFromGallery = async () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 1,
+    };
+  
+    try {
+      const result = await launchImageLibrary(options);
+  
+      if (result.didCancel) {
+        Alert.alert('Cancelled', 'User cancelled gallery selection');
+      } else if (result.errorMessage) {
+        Alert.alert('Error', result.errorMessage);
+      } else if (result.assets && result.assets.length > 0) {
+        setPrescriptionImage(result.assets[0]);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
   // Handle medicine search
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -175,12 +199,31 @@ const DispenseScreen = () => {
         {/* Patient Information Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Patient Information</Text>
-          <TextInput
+          {/* <TextInput
             style={styles.input}
             placeholder="Patient Name"
             value={patientName}
             onChangeText={setPatientName}
-          />
+          /> */}
+
+          <TouchableOpacity onPress={(()=>navigation.navigate('PatientInfoSearch'))}>
+          <View style={{ flex: 1,
+    height: 40,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 5,
+    paddingHorizontal: 15,
+    color: '#000',
+    justifyContent: 'center',
+    borderWidth: 0.1,}}>
+
+      <Text>Search..</Text>
+
+          </View>
+
+          </TouchableOpacity>
+
+ 
+
         </View>
 
         {/* Prescription Image Section */}
@@ -363,7 +406,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   addButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#4756ca',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -424,7 +467,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   dispenseButton: {
-    backgroundColor: '#51cf66',
+    backgroundColor: '#4756ca',
     margin: 10,
     padding: 15,
     borderRadius: 8,

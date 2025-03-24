@@ -45,7 +45,7 @@ const LocationConfirmation = () => {
     getStoredLocation()
   }, [route.params]);
   const handleConfirm = () => {
-    navigation.replace('BranchFormStore', {selectedLocation: fullAddress});
+    navigation.navigate('BranchFormStore', {selectedLocation: fullAddress});
   };
 
   const getStoredLocation = async () => {

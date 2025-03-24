@@ -15,6 +15,7 @@ import RoleManagement from '../types/RoleManagement';
 import ActivityLog from '../components/ActivityLog';
 import RNPickerSelect from 'react-native-picker-select';
 import {ROLES, PERMISSIONS} from '../types/staffTypes';
+import CustomPicker from '../components/UI/Reusebale/CustomPicker/CustomPicker';
 
 // Sample staff data
 const initialStaff = [
@@ -317,7 +318,9 @@ const StaffManagementScreen = () => {
 
             <ScrollView>
               <TextInput
+              
                 style={styles.modalInput}
+                placeholderTextColor={"#000"}
                 placeholder="Full Name *"
                 value={newStaff.name}
                 onChangeText={text => setNewStaff({...newStaff, name: text})}
@@ -325,39 +328,10 @@ const StaffManagementScreen = () => {
 
               <View style={styles.roleSelectContainer}>
                 <Text style={styles.inputLabel}>Select Role *</Text>
-                <RNPickerSelect
+                <CustomPicker
+  selectedValue={newStaff.role}
   onValueChange={(value) => setNewStaff({ ...newStaff, role: value })}
-  items={Object.values(ROLES).map((role) => ({
-    label: role.charAt(0).toUpperCase() + role.slice(1), // Capitalize first letter
-    value: role,
-  }))}
-  value={newStaff.role}
-  style={{
-    inputIOS: {
-      fontSize: 16,
-      padding: 10,
-      borderWidth: 1,
-      borderColor: 'gray',
-      borderRadius: 5,
-      color: 'black',
-      marginBottom: 10,
-      backgroundColor: '#f9f9f9', // Light gray background
-    },
-    inputAndroid: {
-      fontSize: 16,
-      padding: 10,
-      borderWidth: 1,
-      borderColor: 'gray',
-      borderRadius: 5,
-      color: 'black',
-      marginBottom: 10,
-      backgroundColor: '#f9f9f9', // Light gray background
-    },
-    placeholder: {
-      color: 'gray',
-    },
-  }}
-/>
+/>;
               </View>
 
               <TextInput
@@ -367,6 +341,7 @@ const StaffManagementScreen = () => {
                 onChangeText={text => setNewStaff({...newStaff, email: text})}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                placeholderTextColor={"#000"}
               />
 
               <TextInput
@@ -375,6 +350,7 @@ const StaffManagementScreen = () => {
                 value={newStaff.phone}
                 onChangeText={text => setNewStaff({...newStaff, phone: text})}
                 keyboardType="phone-pad"
+                placeholderTextColor={"#000"}
               />
 
               <View style={styles.modalButtons}>
@@ -559,6 +535,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
     fontSize: 16,
+    color:"#000"
   },
   modalButtons: {
     flexDirection: 'row',

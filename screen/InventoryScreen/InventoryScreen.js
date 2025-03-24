@@ -300,23 +300,18 @@ const InventoryScreen = () => {
                 onChangeText={text => setNewItem({...newItem, name: text})}
               />
 
-              <LinearGradient
-                colors={['#4756ca', '#616dc7']}
-                style={[
-                  styles.input,
-                  {
-                    borderRadius: SCREEN_HEIGHT * 0.006,
-                    height: SCREEN_HEIGHT * 0.059,
-                  },
-                ]}>
-                <TextInput
+              <
+              >
+              <View style={{borderWidth:0.8}}>
+              <TextInput
                   mode="flat"
+                
                   label="Expiry Date (MM-YYYY)"
                   style={[
                     styles.input,
                     {
-                      backgroundColor: 'transparent',
-                      top: SCREEN_HEIGHT * 0.0 - 6,
+                      backgroundColor: '#fff',
+          
                     },
                   ]} // Ensures no black background
                   value={expiryDate}
@@ -325,12 +320,15 @@ const InventoryScreen = () => {
                     <TextInput.Icon icon="calendar" onPress={showDatePicker} />
                   }
                 />
-              </LinearGradient>
+
+              </View>
+               
+              </>
 
               <View
                 style={{
                   flexDirection: 'row',
-                  columnGap: SCREEN_HEIGHT * 0.02,
+                  columnGap: SCREEN_HEIGHT * 0.01,
                   marginTop: 20,
                 }}>
                 <TextInput
@@ -349,7 +347,7 @@ const InventoryScreen = () => {
                   mode="outlined"
                   theme={customTheme}
                   label="No of Packs"
-                  style={[styles.Packinputs,{width:170}]}
+                  style={[styles.Packinputs,{width:SCREEN_WIDTH*0.4}]}
                   value={newItem.numberOfPacks}
                   onChangeText={text =>
                     setNewItem({...newItem, numberOfPacks: text})

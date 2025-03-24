@@ -1,7 +1,16 @@
-import React, { useState, useRef } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, Modal, TouchableOpacity, TextInput, ScrollView } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { useNavigation } from '@react-navigation/native';
+import React, {useState, useRef} from 'react';
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Text,
+  Modal,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+} from 'react-native';
+import {WebView} from 'react-native-webview';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -15,15 +24,17 @@ const GetLocationBranch = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const webViewRef = useRef(null);
 
-  // Function to search for locations
-const searchLocation = (query) => {
-  setSearchQuery(query);
 
-  if (query.length > 2) {
-    setShowSearchResults(true);
+  const searchLocation = query => {
+    setSearchQuery(query);
 
-    const searchScript = (query, countryCode = 'IN') => `
-      fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=${countryCode}&q=${encodeURIComponent(query)}')
+    if (query.length > 2) {
+      setShowSearchResults(true);
+
+      const searchScript = (query, countryCode = 'IN') => `
+      fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=${countryCode}&q=${encodeURIComponent(
+        query,
+      )}')
         .then(response => response.json())
         .then(data => {
           window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -33,20 +44,20 @@ const searchLocation = (query) => {
         })
         .catch(error => console.error('Search error:', error));
     `;
-    setLoading(true);
-    // Ensure WebView reference exists before injecting script
-    if (webViewRef.current) {
-      webViewRef.current.injectJavaScript(searchScript(query));
+      setLoading(true);
+      // Ensure WebView reference exists before injecting script
+      if (webViewRef.current) {
+        webViewRef.current.injectJavaScript(searchScript(query));
+      }
+    } else {
+      setShowSearchResults(false);
+      setSearchResults([]);
     }
-  } else {
-    setShowSearchResults(false);
-    setSearchResults([]);
-  }
-};
-  const selectSearchResult = (item) => {
+  };
+  const selectSearchResult = item => {
     setShowSearchResults(false);
     setSearchQuery(item.display_name);
-    
+
     // Center map on selected location and create marker
     const goToLocationScript = `
       map.setView([${item.lat}, ${item.lon}], 15);
@@ -55,7 +66,7 @@ const searchLocation = (query) => {
     `;
     webViewRef.current.injectJavaScript(goToLocationScript);
   };
-  
+
   // Function to get user's current location - only when button is pressed
   const getCurrentLocation = () => {
     const getUserLocationScript = `
@@ -80,157 +91,137 @@ const searchLocation = (query) => {
   };
 
   const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <style>
-          body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
-          #map { width: 100vw; height: 100vh; }
-          .ola-pin {
-            width: 30px;
-            height: 40px;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            margin-left: -15px;
-            margin-top: -40px;
-            z-index: 1000;
-            pointer-events: none;
-            animation: pin-drop 0.5s ease-out;
-          }
-          .ola-pin:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 8px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 50%;
-            filter: blur(2px);
-          }
-          @keyframes pin-drop {
-            0% { transform: translateY(-50px); }
-            60% { transform: translateY(5px); }
-            100% { transform: translateY(0); }
-          }
-          .custom-popup .leaflet-popup-content-wrapper {
-            background: #4756ca;
-            color: white;
-            border-radius: 12px;
-          }
-          .custom-popup .leaflet-popup-tip {
-            background: #4756ca;
-          }
-        </style>
-      </head>
-      <body>
-        <div id="map"></div>
-        <div class="ola-pin">
-          <svg width="30" height="40" viewBox="0 0 48 64">
-            <path d="M24 0C10.7 0 0 10.7 0 24c0 19.2 24 40 24 40s24-20.8 24-40C48 10.7 37.3 0 24 0z" fill="#4756ca"/>
-            <circle cx="24" cy="24" r="12" fill="#ffffff"/>
-          </svg>
-        </div>
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+      <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+      <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+        #map { width: 100vw; height: 100vh; }
+        .ola-pin {
+          width: 30px;
+          height: 40px;
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          margin-left: -15px;
+          margin-top: -40px;
+          z-index: 1000;
+          pointer-events: none;
+          animation: pin-drop 0.5s ease-out;
+        }
+        .ola-pin:after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 20px;
+          height: 8px;
+          background: rgba(0,0,0,0.2);
+          border-radius: 50%;
+          filter: blur(2px);
+        }
+        @keyframes pin-drop {
+          0% { transform: translateY(-50px); }
+          60% { transform: translateY(5px); }
+          100% { transform: translateY(0); }
+        }
+      </style>
+    </head>
+    <body>
+      <div id="map"></div>
 
-        <script>
-          // Map initialization with new theme colors
-          var map = L.map('map', {
-            zoomControl: false, 
-            attributionControl: false
-          }).setView([12.9716, 77.5946], 13);
-          
-          // Custom theme tiles
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19
+      <script>
+        // Map Initialization
+        var map = L.map('map', { zoomControl: false, attributionControl: false })
+                   .setView([12.9716, 77.5946], 13);
+        
+        // Load Tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19
+        }).addTo(map);
+        
+        map.on('load', function() {
+          window.ReactNativeWebView.postMessage("MAP_LOADED");
+        });
+
+        var marker = null; // Store a single marker only
+
+        function createMarker(lat, lon) {
+          // Remove any existing marker before adding a new one
+          if (marker) {
+            map.removeLayer(marker);
+          }
+
+          // Create a new marker
+          marker = L.marker([lat, lon], {
+            icon: L.divIcon({
+              html: \`<svg width="30" height="40" viewBox="0 0 48 64">
+                        <path d="M24 0C10.7 0 0 10.7 0 24c0 19.2 24 40 24 40s24-20.8 24-40C48 10.7 37.3 0 24 0z" fill="#4756ca"/>
+                        <circle cx="24" cy="24" r="12" fill="#ffffff"/>
+                      </svg>\`,
+              className: 'custom-marker',
+              iconSize: [30, 40],
+              iconAnchor: [15, 40]
+            })
           }).addTo(map);
-          
-          map.on('load', function() {
-            window.ReactNativeWebView.postMessage("MAP_LOADED");
-          });
-          
-          var locationMarkers = [];
-          
-          // Create marker at specific location
-          function createMarker(lat, lon) {
-            // Clear existing markers
-            locationMarkers.forEach(marker => map.removeLayer(marker));
-            locationMarkers = [];
-            
-            // Create custom marker
-            var marker = L.marker([lat, lon], {
-              icon: L.divIcon({
-                html: \`<div>
-                        <svg width="30" height="40" viewBox="0 0 48 64">
-                          <path d="M24 0C10.7 0 0 10.7 0 24c0 19.2 24 40 24 40s24-20.8 24-40C48 10.7 37.3 0 24 0z" fill="#4756ca"/>
-                          <circle cx="24" cy="24" r="12" fill="#ffffff"/>
-                        </svg>
-                      </div>\`,
-                className: 'custom-marker',
-                iconSize: [30, 40],
-                iconAnchor: [15, 40]
-              })
-            }).addTo(map);
-            
-            locationMarkers.push(marker);
-            
-            // Get address data
-            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&addressdetails=1')
-              .then(response => response.json())
-              .then(data => {
-                if (data && data.address) {
-                  let fullAddress = data.display_name || "Unknown Address";
-                  let formattedAddress = formatAddress(data.address);
-                  
-                  window.ReactNativeWebView.postMessage(JSON.stringify({ 
-                    type: 'LOCATION_SELECTED',
-                    lat: lat, 
-                    lon: lon, 
-                    fullAddress: fullAddress,
-                    formattedAddress: formattedAddress,
-                    addressComponents: data.address
-                  }));
-                }
-              })
-              .catch(error => console.error('Error fetching address:', error));
-          }
-          
-          function formatAddress(addressObj) {
-            const components = [];
-            if (addressObj.road) components.push(addressObj.road);
-            if (addressObj.suburb) components.push(addressObj.suburb);
-            if (addressObj.city) components.push(addressObj.city);
-            if (addressObj.state) components.push(addressObj.state);
-            return components.join(', ');
-          }
-          
-          // Handle manual location selection via map click
-          map.on('click', function(e) {
-            createMarker(e.latlng.lat, e.latlng.lng);
-          });
-          
-          // Function for select location by center point (used by button)
-          function selectCenterLocation() {
-            var center = map.getCenter();
-            createMarker(center.lat, center.lng);
-          }
-        </script>
-      </body>
-    </html>
-  `;
 
-  const handleMessage = async (event) => {
+          // Fetch address details
+          fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&addressdetails=1')
+            .then(response => response.json())
+            .then(data => {
+              if (data && data.address) {
+                let fullAddress = data.display_name || "Unknown Address";
+                let formattedAddress = formatAddress(data.address);
+                
+                window.ReactNativeWebView.postMessage(JSON.stringify({ 
+                  type: 'LOCATION_SELECTED',
+                  lat: lat, 
+                  lon: lon, 
+                  fullAddress: fullAddress,
+                  formattedAddress: formattedAddress,
+                  addressComponents: data.address
+                }));
+              }
+            })
+            .catch(error => console.error('Error fetching address:', error));
+        }
+        
+        function formatAddress(addressObj) {
+          const components = [];
+          if (addressObj.road) components.push(addressObj.road);
+          if (addressObj.suburb) components.push(addressObj.suburb);
+          if (addressObj.city) components.push(addressObj.city);
+          if (addressObj.state) components.push(addressObj.state);
+          return components.join(', ');
+        }
+
+        // Handle manual location selection via map click
+        map.on('click', function(e) {
+          createMarker(e.latlng.lat, e.latlng.lng);
+        });
+
+        // Function for selecting center location
+        function selectCenterLocation() {
+          var center = map.getCenter();
+          createMarker(center.lat, center.lng);
+        }
+      </script>
+    </body>
+  </html>
+`;    
+
+
+  const handleMessage = async event => {
     const message = event.nativeEvent.data;
-    if (message === "MAP_LOADED") {
+    if (message === 'MAP_LOADED') {
       setLoading(false);
     } else {
       try {
         const data = JSON.parse(message);
-  
         if (data.type === 'SEARCH_RESULTS') {
           setSearchResults(data.results);
         } else if (data.type === 'LOCATION_SELECTED') {
@@ -239,61 +230,65 @@ const searchLocation = (query) => {
             lon: data.lon,
             fullAddress: data.fullAddress,
             formattedAddress: data.formattedAddress,
-            addressComponents: data.addressComponents
+            addressComponents: data.addressComponents,
           };
-  
+
           // Store the selected location in AsyncStorage
-          await AsyncStorage.setItem("favoriteLocations", JSON.stringify(selectedLocation));
-          
+          await AsyncStorage.setItem(
+            'favoriteLocations',
+            JSON.stringify(selectedLocation),
+          );
+
           setSelectedLocation(selectedLocation);
           setModalVisible(true);
         } else if (data.type === 'LOCATION_ERROR') {
           console.warn('Location error:', data.message);
         }
       } catch (error) {
-        console.error("Error parsing WebView message:", error);
+        console.error('Error parsing WebView message:', error);
       }
     }
   };
-  
 
-  // Function to confirm the center location
+
   const confirmCenterLocation = () => {
     const script = `selectCenterLocation(); true;`;
     webViewRef.current.injectJavaScript(script);
-  };
+};
 
-  const saveAsFavorite = async () => {
-    try {
-      if (!selectedLocation) {
-        alert("No location selected!");
-        return;
-      }
-  
-      // Retrieve existing favorites from AsyncStorage
-      const existingFavorites = await AsyncStorage.getItem("favoriteLocations");
-      
-      // Ensure favorites is an array
-      let favorites = existingFavorites ? JSON.parse(existingFavorites) : [];
-  
-      // Check if favorites is not an array (prevent TypeError)
-      if (!Array.isArray(favorites)) {
-        favorites = [];
-      }
-  
-      // Add the new location to favorites
-      favorites.push(selectedLocation);
-  
-      // Save updated favorites list back to AsyncStorage
-      await AsyncStorage.setItem("favoriteLocations", JSON.stringify(favorites));
-  
-      alert("Location saved as favorite!");
-    } catch (error) {
-      console.error("Error saving favorite location:", error);
+
+const saveAsFavorite = async () => {
+  try {
+    if (!selectedLocation) {
+      alert('No location selected!');
+      return;
     }
-  };
-  
-  
+
+    // Retrieve existing favorites from AsyncStorage
+    const existingFavorites = await AsyncStorage.getItem('favoriteLocations');
+
+    // Ensure favorites is an array
+    let favorites = existingFavorites ? JSON.parse(existingFavorites) : [];
+
+    // Check if favorites is not an array (prevent TypeError)
+    if (!Array.isArray(favorites)) {
+      favorites = [];
+    }
+
+    // Add the new location to favorites
+    favorites.push(selectedLocation);
+
+    // Save updated favorites list back to AsyncStorage
+    await AsyncStorage.setItem(
+      'favoriteLocations',
+      JSON.stringify(favorites),
+    );
+
+
+  } catch (error) {
+    console.error('Error saving favorite location:', error);
+  }
+};
   return (
     <View style={styles.container}>
       {loading && (
@@ -301,25 +296,35 @@ const searchLocation = (query) => {
           <ActivityIndicator size="large" color="#4756ca" />
         </View>
       )}
-      
+
       <View style={styles.content}>
-        <WebView 
+        <WebView
           ref={webViewRef}
-          originWhitelist={['*']} 
-          source={{ html: htmlContent }} 
+          originWhitelist={['*']}
+          source={{html: htmlContent}}
           style={styles.webview}
           onMessage={handleMessage}
           javaScriptEnabled={true}
           domStorageEnabled={true}
           geolocationEnabled={true}
         />
-        
+
         <View style={styles.searchContainer}>
           <View style={styles.searchBarWrapper}>
-            <Icon name="arrow-back" size={24} color="#000" style={styles.backIcon} 
-                  onPress={() => navigation.goBack()} />
+            <Icon
+              name="arrow-back"
+              size={24}
+              color="#000"
+              style={styles.backIcon}
+              onPress={() => navigation.goBack()}
+            />
             <View style={styles.searchBar}>
-              <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
+              <Icon
+                name="search"
+                size={20}
+                color="#666"
+                style={styles.searchIcon}
+              />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search for an address..."
@@ -329,77 +334,75 @@ const searchLocation = (query) => {
                 onFocus={() => setShowSearchResults(true)}
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => {
-                  setSearchQuery('');
-                  setShowSearchResults(false);
-                }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setSearchQuery('');
+                    setShowSearchResults(false);
+                  }}>
                   <Icon name="cancel" size={20} color="#666" />
                 </TouchableOpacity>
               )}
             </View>
           </View>
-          
 
           {showSearchResults && (
             <ScrollView style={styles.searchResults}>
-           {searchResults.length > 0 ? (
-  searchResults.map((item, index) => {
-    const matchIndex = item.display_name.toLowerCase().indexOf(searchQuery.toLowerCase());
-    let beforeMatch = item.display_name.substring(0, matchIndex);
-    let matchText = item.display_name.substring(matchIndex, matchIndex + searchQuery.length);
-    let afterMatch = item.display_name.substring(matchIndex + searchQuery.length);
-
-    return (
-      <TouchableOpacity 
-        key={index} 
-        style={styles.searchResultItem}
-        onPress={() => selectSearchResult(item)}
-      >
-        <Icon name="place" size={20} color="#4756ca" />
-        <View style={styles.resultTextContainer}>
-          <Text style={styles.resultPrimaryText} >
-            {beforeMatch}
-            <Text style={styles.highlight}>{matchText}</Text>
-            {afterMatch}
-          </Text>
-          <Text style={styles.resultSecondaryText} >
-            {item.display_name}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  })
-) : searchQuery.length > 2 ? (
-  <View style={styles.noResultsContainer}>
-    <Text style={styles.noResultsText}>No results found</Text>
-  </View>
-) : null}
-
+              {searchResults.length > 0 ? (
+                searchResults.map((item, index) => {
+                  const matchIndex = item.display_name
+                    .toLowerCase()
+                    .indexOf(searchQuery.toLowerCase());
+                  let beforeMatch = item.display_name.substring(0, matchIndex);
+                  let matchText = item.display_name.substring(
+                    matchIndex,
+                    matchIndex + searchQuery.length,
+                  );
+                  let afterMatch = item.display_name.substring(
+                    matchIndex + searchQuery.length,
+                  );
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.searchResultItem}
+                      onPress={() => selectSearchResult(item)}>
+                      <Icon name="place" size={20} color="#4756ca" />
+                      <View style={styles.resultTextContainer}>
+                        <Text style={styles.resultPrimaryText}>
+                          {beforeMatch}
+                          <Text style={styles.highlight}>{matchText}</Text>
+                          {afterMatch}
+                        </Text>
+                        {/* <Text style={styles.resultSecondaryText}>
+                          {item.display_name}
+                        </Text> */}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })
+              ) : searchQuery.length > 2 ? (
+                <View style={styles.noResultsContainer}>
+                  <Text style={styles.noResultsText}>No results found</Text>
+                </View>
+              ) : null}
             </ScrollView>
           )}
         </View>
-        
 
         <View style={styles.actionButtonsContainer}>
-
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
-            onPress={getCurrentLocation}
-          >
+            onPress={getCurrentLocation}>
             <Icon name="my-location" size={22} color="#fff" />
           </TouchableOpacity>
-          
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.actionButton, styles.confirmPinButton]}
-            onPress={confirmCenterLocation}
-          >
+            onPress={confirmCenterLocation}>
             <Icon name="place" size={22} color="#fff" />
             <Text style={styles.confirmPinText}>Confirm Pin Location</Text>
           </TouchableOpacity>
         </View>
       </View>
-
 
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
@@ -407,45 +410,49 @@ const searchLocation = (query) => {
             <View style={styles.modalHeader}>
               <View style={styles.dragHandle} />
             </View>
-            
+
             <View style={styles.addressContainer}>
               <View style={styles.addressIconContainer}>
                 <Icon name="place" size={24} color="#4756ca" />
               </View>
               <View style={styles.addressTextContainer}>
                 <Text style={styles.addressLabel}>Selected Location</Text>
-                <Text style={styles.addressMain} >
-                  {selectedLocation?.formattedAddress || selectedLocation?.fullAddress}
+                <Text style={styles.addressMain}>
+                  {selectedLocation?.formattedAddress ||
+                    selectedLocation?.fullAddress}
                 </Text>
-                <Text style={styles.addressSecondary} >
+                <Text style={styles.addressSecondary}>
                   {selectedLocation?.fullAddress}
                 </Text>
               </View>
             </View>
-            
+
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={styles.editButton} 
-                onPress={() => setModalVisible(false)}
-              >
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => setModalVisible(false)}>
                 <Text style={styles.editButtonText}>Edit</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.confirmButton} 
+              <TouchableOpacity
+                style={styles.confirmButton}
                 onPress={() => {
                   setModalVisible(false);
-                  navigation.replace('BranchLocationConfirmation', selectedLocation);
-                }}
-              >
+                  navigation.navigate(
+                    'BranchLocationConfirmation',
+                    selectedLocation,
+                  );
+                }}>
                 <Text style={styles.confirmButtonText}>Confirm Location</Text>
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.additionalOptions}>
-            <TouchableOpacity style={styles.optionItem} onPress={saveAsFavorite}>
-  <Icon name="star" size={20} color="#616dc7" />
-  <Text style={styles.optionText}>Save as favorite</Text>
-</TouchableOpacity>
+              <TouchableOpacity
+                style={styles.optionItem}
+                onPress={saveAsFavorite}>
+                <Icon name="star" size={20} color="#616dc7" />
+                <Text style={styles.optionText}>Save as favorite</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity style={styles.optionItem}>
                 <Icon name="share" size={20} color="#616dc7" />
@@ -460,22 +467,22 @@ const searchLocation = (query) => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: "#f8f9fa"
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
   },
   loader: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  content: { 
+  content: {
     flex: 1,
-    position: 'relative'
+    position: 'relative',
   },
-  webview: { 
-    flex: 1 
+  webview: {
+    flex: 1,
   },
   // Search bar styles
   searchContainer: {
@@ -494,7 +501,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
@@ -526,7 +533,7 @@ const styles = StyleSheet.create({
     maxHeight: 300,
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
@@ -576,7 +583,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
@@ -592,13 +599,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   // Modal styles
-  modalContainer: { 
+  modalContainer: {
     flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0, 0, 0, 0.5)" 
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  modalContent: { 
-    backgroundColor: "white",
+  modalContent: {
+    backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -689,7 +696,7 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: 'bold',
-    color: '#4756ca', // Change to any color you prefer
+    color: '#4756ca',
   },
 });
 
