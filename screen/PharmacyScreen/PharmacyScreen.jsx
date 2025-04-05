@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, {useCallback, useRef} from 'react';
 import {
   Animated,
   FlatList,
@@ -7,30 +7,54 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Dimensions
+  Dimensions,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import * as Animatable from 'react-native-animatable';
-const SCREEN_WIDTH = Dimensions.get("window").width;
-const SCREEN_HEIGHT = Dimensions.get("window").height
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 const PharmacyView = () => {
-  const navigation = useNavigation()
+  const navigation = useNavigation();
   const scrollY = useRef(new Animated.Value(0)).current;
 
   const data = [
-    { id: '1', name: 'pharmacy 1', location: '', img: require('../../assets/Pharmacist-rafiki.png') },
-    { id: '2', name: 'pharmacy 2', location: '', img: require('../../assets/Pharmacist-rafiki.png') },
-    { id: '3', name: 'pharmacy 3', location: '', img: require('../../assets/Pharmacist-rafiki.png') },
-    { id: '4', name: 'pharmacy 4', location: '', img: require('../../assets/Pharmacist-rafiki.png') },
-    { id: 'add', isAddCard: true },
+    {
+      id: '1',
+      name: 'pharmacy 1',
+      location: '',
+      img: require('../../assets/Pharmacist-rafiki.png'),
+    },
+    {
+      id: '2',
+      name: 'pharmacy 2',
+      location: '',
+      img: require('../../assets/Pharmacist-rafiki.png'),
+    },
+    {
+      id: '3',
+      name: 'pharmacy 3',
+      location: '',
+      img: require('../../assets/Pharmacist-rafiki.png'),
+    },
+    {
+      id: '4',
+      name: 'pharmacy 4',
+      location: '',
+      img: require('../../assets/Pharmacist-rafiki.png'),
+    },
+    {id: 'add', isAddCard: true},
   ];
+  const handleClick = useCallback(() => {
+    navigation.navigate('BranchScreen');
+  }, [navigation]);
 
   const renderItem = useCallback(
-    ({ item, index }) => {
+    ({item, index}) => {
       if (item.isAddCard) {
         return (
-          
-          <TouchableOpacity style={styles.addCard} onPress={()=>navigation.navigate("PharmacyDetails")}>
+          <TouchableOpacity
+            style={styles.addCard}
+            onPress={() => navigation.navigate('PharmacyDetails')}>
             <Text style={styles.addCardText}>+ Add New Pharmacy </Text>
           </TouchableOpacity>
         );
@@ -101,54 +125,70 @@ const PharmacyView = () => {
       });
 
       return (
-
         <Animatable.View animation={'fadeIn'}>
-             <Animated.View
-          style={[
-            styles.card,
-            {
-              transform: [{ scale }, { translateY }],
-              opacity,
-              borderTopColor: borderColorTop,
-              borderRightColor: borderColorRight,
-              borderBottomColor: borderColorBottom,
-              borderLeftColor: borderColorLeft,
-              borderTopWidth: borderWidthTop,
-              borderRightWidth: borderWidthRight,
-              borderBottomWidth: borderWidthBottom,
-              borderLeftWidth:borderWidthLeft
-            },
-          ]}
-        >
-     <Image  source={item.img} style={styles.cardImage} />
-          <View style={{flexDirection:"row",}}>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>{item.name}</Text>
-            <Text style={styles.cardLocation}>{item.location}</Text>
-          </View>
+          <Animated.View
+            style={[
+              styles.card,
+              {
+                transform: [{scale}, {translateY}],
+                opacity,
+                borderTopColor: borderColorTop,
+                borderRightColor: borderColorRight,
+                borderBottomColor: borderColorBottom,
+                borderLeftColor: borderColorLeft,
+                borderTopWidth: borderWidthTop,
+                borderRightWidth: borderWidthRight,
+                borderBottomWidth: borderWidthBottom,
+                borderLeftWidth: borderWidthLeft,
+              },
+            ]}>
+            <Image source={item.img} style={styles.cardImage} />
+            <View style={{flexDirection: 'row'}}>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>{item.name}</Text>
+                <Text style={styles.cardLocation}>{item.location}</Text>
+              </View>
 
-          <View style={{flexDirection:"row",display:"flex",marginTop:SCREEN_HEIGHT*0.03,left:SCREEN_HEIGHT*0.15,backgroundColor:"#4756ca",alignItems:"center",borderRadius:SCREEN_HEIGHT*0.03,height:SCREEN_HEIGHT*0.04,width:SCREEN_HEIGHT*0.2}}>
-              <TouchableOpacity onPress={()=>navigation.navigate('BranchScreen')}>
-                <Text style={{fontFamily:"Nunito-Regular",left:7,color:'#fff'}}>View Branch</Text>
-              </TouchableOpacity>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  display: 'flex',
+                  marginTop: SCREEN_HEIGHT * 0.03,
+                  left: SCREEN_HEIGHT * 0.15,
+                  backgroundColor: '#4756ca',
+                  alignItems: 'center',
+                  borderRadius: SCREEN_HEIGHT * 0.03,
+                  height: SCREEN_HEIGHT * 0.04,
+                  width: SCREEN_HEIGHT * 0.2,
+                }}>
+                <TouchableOpacity onPress={handleClick}>
+                  <Text
+                    style={{
+                      fontFamily: 'Nunito-Regular',
+                      left: 7,
+                      color: '#fff',
+                    }}>
+                    View Branch
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </Animated.View>
+          </Animated.View>
         </Animatable.View>
       );
     },
-    [scrollY]
+    [scrollY],
   );
   return (
     <View style={styles.container}>
       <Animated.FlatList
         data={data}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.contentContainer}
         onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
+          [{nativeEvent: {contentOffset: {y: scrollY}}}],
+          {useNativeDriver: false},
         )}
       />
     </View>
@@ -174,8 +214,8 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: '65%',
-    resizeMode:"contain",
-    justifyContent:"center"
+    resizeMode: 'contain',
+    justifyContent: 'center',
   },
   cardContent: {
     padding: 10,
@@ -198,14 +238,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    borderColor:"#4756ca",
-    borderWidth:1
+    borderColor: '#4756ca',
+    borderWidth: 1,
   },
   addCardText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily:"Nunito-Regular"
+    fontFamily: 'Nunito-Regular',
   },
 });
 

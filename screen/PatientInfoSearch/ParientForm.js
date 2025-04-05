@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, TouchableOpacity, Text } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { TextInput, DefaultTheme, Button } from 'react-native-paper';
 
 let screenWidth = Dimensions.get('window').width;
@@ -34,9 +35,28 @@ const PatientForm = () => {
         mode="outlined"
         keyboardType="phone-pad"
       />
-      <Button mode="contained" onPress={handleSubmit} style={styles.button}>
-        Submit
-      </Button>
+
+      <View style={{justifyContent:"center",alignItems:"center"}}>
+      <LinearGradient
+                    style={{
+                      height: 40,
+                      width: 150,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderRadius: 10,
+                    }}
+                    colors={['#4756ca', '#616dc7']}>
+                    <TouchableOpacity
+                      onPress={handleSubmit}
+                      style={{justifyContent: 'center', alignItems: 'center'}}>
+                      <Text style={[styles.addButtonText, {color: '#fff'}]}>
+                        Add Patient
+                      </Text>
+                    </TouchableOpacity>
+                  </LinearGradient>
+
+      </View>
+      
     </View>
   );
 };

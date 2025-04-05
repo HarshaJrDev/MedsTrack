@@ -7,9 +7,10 @@ import {
   TouchableOpacity,
   View,
   Dimensions,
+  Share,
 } from 'react-native';
 
-import {useNavigation, CommonActions} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import * as Animatable from 'react-native-animatable';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -18,8 +19,6 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 const BranchScreen = () => {
   const navigation = useNavigation();
   const scrollY = useRef(new Animated.Value(0)).current;
-
-  const IMAGE = require('../../assets/ViewBooking.png');
 
   const data = [
     {
@@ -48,6 +47,25 @@ const BranchScreen = () => {
     },
     {id: 'add', isAddCard: true},
   ];
+
+  const handleShare = async (branch) => {
+    try {
+      const result = await Share.share({
+        message: `Check out ${branch.name} located at ${branch.location}.`,
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log('Shared with activity type:', result.activityType);
+        } else {
+          console.log('Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
+      }
+    } catch (error) {
+      alert('Error sharing: ' + error.message);
+    }
+  };
 
   const renderItem = useCallback(
     ({item, index}) => {
@@ -78,53 +96,6 @@ const BranchScreen = () => {
         outputRange: [1, 1, 1, 0],
       });
 
-      const borderColorTop = scrollY.interpolate({
-        inputRange,
-        outputRange: ['#4756ca', '#4756ca', '#4756ca', '#4756ca'],
-        extrapolate: 'clamp',
-      });
-
-      const borderColorRight = scrollY.interpolate({
-        inputRange,
-        outputRange: ['#4756ca', '#4756ca', '#4756ca', '#4756ca'],
-        extrapolate: 'clamp',
-      });
-
-      const borderColorBottom = scrollY.interpolate({
-        inputRange,
-        outputRange: ['#4756ca', '#4756ca', '#4756ca', '#4756ca'],
-        extrapolate: 'clamp',
-      });
-
-      const borderColorLeft = scrollY.interpolate({
-        inputRange,
-        outputRange: ['#4756ca', '#4756ca', '#4756ca', '#4756ca'],
-        extrapolate: 'clamp',
-      });
-
-      const borderWidthTop = scrollY.interpolate({
-        inputRange,
-        outputRange: [1, 1, 1, 1],
-        extrapolate: 'clamp',
-      });
-
-      const borderWidthRight = scrollY.interpolate({
-        inputRange,
-        outputRange: [1, 1, 6, 1],
-        extrapolate: 'clamp',
-      });
-
-      const borderWidthBottom = scrollY.interpolate({
-        inputRange,
-        outputRange: [1, 1, 6, 1],
-        extrapolate: 'clamp',
-      });
-      const borderWidthLeft = scrollY.interpolate({
-        inputRange,
-        outputRange: [1, 1, 1, 1],
-        extrapolate: 'clamp',
-      });
-
       return (
         <Animatable.View animation={'fadeIn'}>
           <Animated.View
@@ -133,45 +104,27 @@ const BranchScreen = () => {
               {
                 transform: [{scale}, {translateY}],
                 opacity,
-                borderTopColor: borderColorTop,
-                borderRightColor: borderColorRight,
-                borderBottomColor: borderColorBottom,
-                borderLeftColor: borderColorLeft,
-                borderTopWidth: borderWidthTop,
-                borderRightWidth: borderWidthRight,
-                borderBottomWidth: borderWidthBottom,
-                borderLeftWidth: borderWidthLeft,
               },
             ]}>
             <Image source={item.img} style={styles.cardImage} />
 
-            <View style={{flexDirection: 'row'}}>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>{item.name}</Text>
                 <Text style={styles.cardLocation}>{item.location}</Text>
               </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  display: 'flex',
-                  marginTop: SCREEN_HEIGHT * 0.03,
-                  left: SCREEN_HEIGHT * 0.2,
-                  backgroundColor: '#4756ca',
-                  alignItems: 'center',
-                  borderRadius: SCREEN_HEIGHT * 0.03,
-                  height: SCREEN_HEIGHT * 0.04,
-                  width: SCREEN_HEIGHT * 0.2,
-                }}>
-                <TouchableOpacity onPress={() => navigation.replace('MainApp')}>
-                  <Text
-                    style={{
-                      fontFamily: 'Nunito-Regular',
-                      left: 7,
-                      color: '#fff',
-                    }}>
-                    {' '}
-                    View details
-                  </Text>
+
+              <View style={styles.actions}>
+                <TouchableOpacity
+                  style={styles.viewButton}
+                  onPress={() => navigation.replace('MainApp')}>
+                  <Text style={styles.buttonText}>View details</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.shareButton}
+                  onPress={() => handleShare(item)}>
+                  <Text style={styles.buttonText}>Share</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -181,6 +134,7 @@ const BranchScreen = () => {
     },
     [scrollY],
   );
+
   return (
     <View style={styles.container}>
       <Animated.FlatList
@@ -212,12 +166,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#fff',
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#4756ca',
   },
   cardImage: {
     width: '100%',
     height: '65%',
     resizeMode: 'contain',
-    justifyContent: 'center',
   },
   cardContent: {
     padding: 10,
@@ -231,6 +186,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000',
     marginTop: 5,
+  },
+  actions: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    marginRight: 10,
+  },
+  viewButton: {
+    backgroundColor: '#4756ca',
+
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 8,
+    left:20,
+    borderBottomLeftRadius:SCREEN_WIDTH*0.3,
+    borderTopLeftRadius:SCREEN_WIDTH*0.3,
+    height:35,
+    
+  },
+  shareButton: {
+    backgroundColor: '#4756ca',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 8,
+    left:20,
+    borderBottomLeftRadius:SCREEN_WIDTH*0.3,
+    borderTopLeftRadius:SCREEN_WIDTH*0.3,
+    height:35
+  },
+  buttonText: {
+    color: '#fff',
+    fontFamily: 'Nunito-Regular',
+    fontSize: 14,
   },
   addCard: {
     height: 250,

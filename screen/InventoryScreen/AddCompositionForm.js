@@ -352,8 +352,6 @@ const AddComposition = () => {
               />
 
               <View style={{marginTop: 20}}>
-   
-
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
                     style={styles.saveButton}
@@ -399,14 +397,14 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: '#3f4fb8',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
     borderRadius: 20,
-    width: 100,
+    width: 120,
+    alignItems:"center",
+    justifyContent:"center"
   },
   addButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 12,
     textAlign: 'center',
   },
   list: {
@@ -478,10 +476,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   modalContainer: {
-
     justifyContent: 'center',
     alignItems: 'center',
-marginTop:60
+    marginTop: 60,
   },
   modalContent: {
     backgroundColor: '#fff',
@@ -489,7 +486,6 @@ marginTop:60
     padding: 20,
     width: SCREEN_WIDTH - 40,
     flex: 1,
-    
   },
   modalTitle: {
     fontSize: 18,

@@ -229,7 +229,7 @@ const InventoryScreen = () => {
         <Text style={styles.itemInfo}>Category: {selectedCategory.type}</Text>
         <Text style={styles.itemInfo}>MRP: ₹{item.mrp.toFixed(2)}</Text>
         <Text style={styles.itemInfo}>PTR: ₹{item.ptr.toFixed(2)}</Text>
-        <Text style={styles.itemInfo}>Expires: {item.expiryDate}</Text>
+        <Text style={[styles.itemInfo]}>Expires: {item.expiryDate}</Text>
         <Text style={styles.itemInfo}>Batch No: {item.batchNo}</Text>
         <Text style={styles.itemInfo}>GST Rate: {item.batchGstRate}%</Text>
       </View>
@@ -254,7 +254,7 @@ const InventoryScreen = () => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.searchInput}
-          onPress={() => navigation.navigate('SearchScreen')}>
+          onPress={() => navigation.navigate('Inventory Search')}>
           <Text>Search...</Text>
         </TouchableOpacity>
 
@@ -300,29 +300,33 @@ const InventoryScreen = () => {
                 onChangeText={text => setNewItem({...newItem, name: text})}
               />
 
-              <
-              >
-              <View style={{borderWidth:0.8}}>
-              <TextInput
-                  mode="flat"
-                
-                  label="Expiry Date (MM-YYYY)"
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: '#fff',
-          
-                    },
-                  ]} // Ensures no black background
-                  value={expiryDate}
-                  editable={false} // Prevent manual input
-                  right={
-                    <TextInput.Icon icon="calendar" onPress={showDatePicker} />
-                  }
-                />
+              <>
+                <View style={{borderWidth: 0.8}}>
+                <TextInput
+  mode="flat"
+  label="Expiry Date(MM-YYYY)"
+  style={[
+    styles.input,
+    { backgroundColor: "#fff" }
+  ]}
+  textColor="#000"
+  value={expiryDate}
+  editable={false}
+  theme={{
+    colors: {
+      primary: '#000', // Focused label color
+      onSurfaceVariant: '#000' // Unfocused label color (use this for latest versions)
+    }
+  }}
+  right={
+    <TextInput.Icon
+      icon="calendar"
+      onPress={showDatePicker}
+    />
+  }
+/>
 
-              </View>
-               
+                </View>
               </>
 
               <View
@@ -347,7 +351,7 @@ const InventoryScreen = () => {
                   mode="outlined"
                   theme={customTheme}
                   label="No of Packs"
-                  style={[styles.Packinputs,{width:SCREEN_WIDTH*0.4}]}
+                  style={[styles.Packinputs, {width: SCREEN_WIDTH * 0.4}]}
                   value={newItem.numberOfPacks}
                   onChangeText={text =>
                     setNewItem({...newItem, numberOfPacks: text})

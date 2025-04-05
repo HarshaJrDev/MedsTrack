@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   View,
   StyleSheet,
@@ -16,22 +16,38 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const GetLocationBranch = () => {
   const navigation = useNavigation();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const webViewRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
-
+  // Debounce search to improve performance
   const searchLocation = query => {
     setSearchQuery(query);
 
-    if (query.length > 2) {
-      setShowSearchResults(true);
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
 
-      const searchScript = (query, countryCode = 'IN') => `
+    if (query.length > 2) {
+      // Set a timeout to delay the search until user stops typing
+      searchTimeoutRef.current = setTimeout(() => {
+        setShowSearchResults(true);
+        performSearch(query);
+      }, 500); // 500ms debounce
+    } else {
+      setShowSearchResults(false);
+      setSearchResults([]);
+    }
+  };
+
+  const performSearch = (query) => {
+    const searchScript = (query, countryCode = 'IN') => `
       fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=${countryCode}&q=${encodeURIComponent(
         query,
       )}')
@@ -42,18 +58,21 @@ const GetLocationBranch = () => {
             results: data.slice(0, 5)
           }));
         })
-        .catch(error => console.error('Search error:', error));
+        .catch(error => {
+          console.error('Search error:', error);
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'SEARCH_ERROR',
+            message: error.toString()
+          }));
+        });
     `;
-      setLoading(true);
-      // Ensure WebView reference exists before injecting script
-      if (webViewRef.current) {
-        webViewRef.current.injectJavaScript(searchScript(query));
-      }
-    } else {
-      setShowSearchResults(false);
-      setSearchResults([]);
+    
+    // Ensure WebView reference exists before injecting script
+    if (webViewRef.current) {
+      webViewRef.current.injectJavaScript(searchScript(query));
     }
   };
+
   const selectSearchResult = item => {
     setShowSearchResults(false);
     setSearchQuery(item.display_name);
@@ -61,7 +80,7 @@ const GetLocationBranch = () => {
     // Center map on selected location and create marker
     const goToLocationScript = `
       map.setView([${item.lat}, ${item.lon}], 15);
-      createMarker(${item.lat}, ${item.lon});
+      createMarker(${item.lat}, ${item.lon}, false);
       true;
     `;
     webViewRef.current.injectJavaScript(goToLocationScript);
@@ -69,13 +88,14 @@ const GetLocationBranch = () => {
 
   // Function to get user's current location - only when button is pressed
   const getCurrentLocation = () => {
-    const getUserLocationScript = `
+    const script = `
       navigator.geolocation.getCurrentPosition(
         function(position) {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
           map.setView([lat, lon], 15);
-          createMarker(lat, lon);
+          createMarker(lat, lon, false);
+          document.getElementById('centerPin').style.display = 'none';
         },
         function(error) {
           window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -87,9 +107,9 @@ const GetLocationBranch = () => {
       );
       true;
     `;
-    webViewRef.current.injectJavaScript(getUserLocationScript);
+    webViewRef.current.injectJavaScript(script);
   };
-
+  
   const htmlContent = `
   <!DOCTYPE html>
   <html>
@@ -98,197 +118,211 @@ const GetLocationBranch = () => {
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
       <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
       <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
-        #map { width: 100vw; height: 100vh; }
-        .ola-pin {
-          width: 30px;
-          height: 40px;
+        html, body { margin: 0; padding: 0; height: 100%; }
+        #map { height: 100vh; width: 100vw; }
+        .center-pin {
           position: absolute;
-          left: 50%;
           top: 50%;
-          margin-left: -15px;
-          margin-top: -40px;
-          z-index: 1000;
-          pointer-events: none;
-          animation: pin-drop 0.5s ease-out;
-        }
-        .ola-pin:after {
-          content: '';
-          position: absolute;
-          bottom: 0;
           left: 50%;
-          transform: translateX(-50%);
-          width: 20px;
-          height: 8px;
-          background: rgba(0,0,0,0.2);
-          border-radius: 50%;
-          filter: blur(2px);
+          transform: translate(-50%, -100%);
+          z-index: 999;
+          pointer-events: none;
         }
-        @keyframes pin-drop {
-          0% { transform: translateY(-50px); }
-          60% { transform: translateY(5px); }
-          100% { transform: translateY(0); }
+        .custom-marker {
+          background: none;
+          border: none;
         }
       </style>
     </head>
     <body>
       <div id="map"></div>
-
+      <div class="center-pin" id="centerPin">
+        <svg width="30" height="40" viewBox="0 0 48 64">
+          <path d="M24 0C10.7 0 0 10.7 0 24c0 19.2 24 40 24 40s24-20.8 24-40C48 10.7 37.3 0 24 0z" fill="#4756ca"/>
+          <circle cx="24" cy="24" r="12" fill="#ffffff"/>
+        </svg>
+      </div>
+  
       <script>
-        // Map Initialization
-        var map = L.map('map', { zoomControl: false, attributionControl: false })
-                   .setView([12.9716, 77.5946], 13);
-        
-        // Load Tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19
-        }).addTo(map);
-        
-        map.on('load', function() {
-          window.ReactNativeWebView.postMessage("MAP_LOADED");
-        });
-
-        var marker = null; // Store a single marker only
-
-        function createMarker(lat, lon) {
-          // Remove any existing marker before adding a new one
-          if (marker) {
-            map.removeLayer(marker);
-          }
-
-          // Create a new marker
+        let map, marker;
+  
+        function formatAddress(addr) {
+          const parts = [];
+          if (addr.road) parts.push(addr.road);
+          if (addr.suburb) parts.push(addr.suburb);
+          if (addr.city) parts.push(addr.city);
+          if (addr.state) parts.push(addr.state);
+          return parts.join(', ');
+        }
+  
+        function createMarker(lat, lon, shouldFetch = true) {
+          if (marker) map.removeLayer(marker);
+  
           marker = L.marker([lat, lon], {
             icon: L.divIcon({
-              html: \`<svg width="30" height="40" viewBox="0 0 48 64">
-                        <path d="M24 0C10.7 0 0 10.7 0 24c0 19.2 24 40 24 40s24-20.8 24-40C48 10.7 37.3 0 24 0z" fill="#4756ca"/>
-                        <circle cx="24" cy="24" r="12" fill="#ffffff"/>
-                      </svg>\`,
+              html: \`
+                <svg width="30" height="40" viewBox="0 0 48 64">
+                  <path d="M24 0C10.7 0 0 10.7 0 24c0 19.2 24 40 24 40s24-20.8 24-40C48 10.7 37.3 0 24 0z" fill="#4756ca"/>
+                  <circle cx="24" cy="24" r="12" fill="#ffffff"/>
+                </svg>\`,
               className: 'custom-marker',
               iconSize: [30, 40],
-              iconAnchor: [15, 40]
+              iconAnchor: [15, 40],
             })
           }).addTo(map);
-
-          // Fetch address details
-          fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&addressdetails=1')
-            .then(response => response.json())
-            .then(data => {
-              if (data && data.address) {
-                let fullAddress = data.display_name || "Unknown Address";
-                let formattedAddress = formatAddress(data.address);
-                
-                window.ReactNativeWebView.postMessage(JSON.stringify({ 
+  
+          if (shouldFetch) {
+            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&addressdetails=1')
+              .then(res => res.json())
+              .then(data => {
+                const fullAddress = data.display_name || '';
+                const formattedAddress = formatAddress(data.address);
+                window.ReactNativeWebView.postMessage(JSON.stringify({
                   type: 'LOCATION_SELECTED',
-                  lat: lat, 
-                  lon: lon, 
-                  fullAddress: fullAddress,
-                  formattedAddress: formattedAddress,
-                  addressComponents: data.address
+                  lat,
+                  lon,
+                  fullAddress,
+                  formattedAddress,
+                  addressComponents: data.address,
                 }));
-              }
-            })
-            .catch(error => console.error('Error fetching address:', error));
+              })
+              .catch(() => {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'LOCATION_ERROR',
+                  message: 'Failed to fetch address.'
+                }));
+              });
+          }
         }
-        
-        function formatAddress(addressObj) {
-          const components = [];
-          if (addressObj.road) components.push(addressObj.road);
-          if (addressObj.suburb) components.push(addressObj.suburb);
-          if (addressObj.city) components.push(addressObj.city);
-          if (addressObj.state) components.push(addressObj.state);
-          return components.join(', ');
-        }
-
-        // Handle manual location selection via map click
-        map.on('click', function(e) {
-          createMarker(e.latlng.lat, e.latlng.lng);
-        });
-
-        // Function for selecting center location
+  
         function selectCenterLocation() {
-          var center = map.getCenter();
-          createMarker(center.lat, center.lng);
+          const center = map.getCenter();
+          createMarker(center.lat, center.lng, true);
+          const pin = document.getElementById('centerPin');
+          if (pin) pin.style.display = 'none';
         }
+  
+        document.addEventListener("DOMContentLoaded", function () {
+          map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+          }).setView([12.9716, 77.5946], 13);
+  
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+          }).addTo(map);
+  
+          map.on('click', function (e) {
+            createMarker(e.latlng.lat, e.latlng.lng, true);
+  
+            const pin = document.getElementById('centerPin');
+            if (pin) pin.style.display = 'none';
+          });
+  
+          map.whenReady(() => {
+            map.invalidateSize();
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_LOADED' }));
+          });
+        });
+  
+        window.selectCenterLocation = selectCenterLocation;
       </script>
     </body>
   </html>
-`;    
+  `;
 
-
-  const handleMessage = async event => {
+  const handleMessage = (event) => {
     const message = event.nativeEvent.data;
-    if (message === 'MAP_LOADED') {
-      setLoading(false);
-    } else {
-      try {
-        const data = JSON.parse(message);
-        if (data.type === 'SEARCH_RESULTS') {
-          setSearchResults(data.results);
-        } else if (data.type === 'LOCATION_SELECTED') {
-          const selectedLocation = {
+  
+    try {
+      const data = JSON.parse(message);
+  
+      switch (data.type) {
+        case 'MAP_LOADED':
+          setLoading(false);
+          break;
+        case 'LOCATION_SELECTED':
+          setSelectedLocation({
             lat: data.lat,
             lon: data.lon,
-            fullAddress: data.fullAddress,
-            formattedAddress: data.formattedAddress,
-            addressComponents: data.addressComponents,
-          };
-
-          // Store the selected location in AsyncStorage
-          await AsyncStorage.setItem(
-            'favoriteLocations',
-            JSON.stringify(selectedLocation),
-          );
-
-          setSelectedLocation(selectedLocation);
+            fullAddress: data.fullAddress || '',
+            formattedAddress: data.formattedAddress || '',
+            addressComponents: data.addressComponents || {},
+          });
           setModalVisible(true);
-        } else if (data.type === 'LOCATION_ERROR') {
+          break;
+        case 'LOCATION_ERROR':
           console.warn('Location error:', data.message);
-        }
-      } catch (error) {
-        console.error('Error parsing WebView message:', error);
+          break;
+        case 'SEARCH_RESULTS':
+          // Handle search results from WebView
+          setSearchResults(data.results || []);
+          break;
+        case 'SEARCH_ERROR':
+          console.warn('Search error:', data.message);
+          setSearchResults([]);
+          break;
+        default:
+          console.warn('Unhandled message type:', data.type);
+      }
+    } catch (e) {
+      if (message === 'MAP_LOADED') {
+        setLoading(false);
+      } else {
+        console.error('WebView message error:', e);
       }
     }
   };
 
-
   const confirmCenterLocation = () => {
-    const script = `selectCenterLocation(); true;`;
-    webViewRef.current.injectJavaScript(script);
-};
+    webViewRef.current.injectJavaScript(`selectCenterLocation(); true;`);
+  };
 
+  const saveAsFavorite = async () => {
+    try {
+      if (!selectedLocation) {
+        alert('No location selected!');
+        return;
+      }
 
-const saveAsFavorite = async () => {
-  try {
-    if (!selectedLocation) {
-      alert('No location selected!');
-      return;
+      const existingFavorites = await AsyncStorage.getItem('favoriteLocations');
+      let favorites = [];
+
+      if (existingFavorites) {
+        try {
+          const parsed = JSON.parse(existingFavorites);
+          favorites = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          favorites = [];
+        }
+      }
+
+      // Check for duplicates based on lat/lon
+      const isDuplicate = favorites.some(
+        fav =>
+          fav.lat === selectedLocation.lat &&
+          fav.lon === selectedLocation.lon
+      );
+
+      if (isDuplicate) {
+        alert('This location is already in favorites.');
+        return;
+      }
+
+      favorites.push(selectedLocation);
+
+      await AsyncStorage.setItem(
+        'favoriteLocations',
+        JSON.stringify(favorites)
+      );
+
+      alert('Location saved to favorites!');
+    } catch (error) {
+      console.error('Error saving favorite location:', error);
+      alert('Failed to save location as favorite.');
     }
-
-    // Retrieve existing favorites from AsyncStorage
-    const existingFavorites = await AsyncStorage.getItem('favoriteLocations');
-
-    // Ensure favorites is an array
-    let favorites = existingFavorites ? JSON.parse(existingFavorites) : [];
-
-    // Check if favorites is not an array (prevent TypeError)
-    if (!Array.isArray(favorites)) {
-      favorites = [];
-    }
-
-    // Add the new location to favorites
-    favorites.push(selectedLocation);
-
-    // Save updated favorites list back to AsyncStorage
-    await AsyncStorage.setItem(
-      'favoriteLocations',
-      JSON.stringify(favorites),
-    );
-
-
-  } catch (error) {
-    console.error('Error saving favorite location:', error);
-  }
-};
+  };
+  
   return (
     <View style={styles.container}>
       {loading && (
@@ -307,6 +341,9 @@ const saveAsFavorite = async () => {
           javaScriptEnabled={true}
           domStorageEnabled={true}
           geolocationEnabled={true}
+          cacheEnabled={true}
+          cacheMode="LOAD_CACHE_ELSE_NETWORK"
+          onLoadStart={() => setLoading(true)}
         />
 
         <View style={styles.searchContainer}>
@@ -331,7 +368,11 @@ const saveAsFavorite = async () => {
                 placeholderTextColor="#999"
                 value={searchQuery}
                 onChangeText={searchLocation}
-                onFocus={() => setShowSearchResults(true)}
+                onFocus={() => {
+                  if (searchQuery.length > 2) {
+                    setShowSearchResults(true);
+                  }
+                }}
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity
@@ -369,23 +410,26 @@ const saveAsFavorite = async () => {
                       <View style={styles.resultTextContainer}>
                         <Text style={styles.resultPrimaryText}>
                           {beforeMatch}
-                          <Text style={styles.highlight}>{matchText}</Text>
+                          <Text style={styles.highlight} numberOfLines={1} ellipsizeMode='tail' >{matchText}</Text>
                           {afterMatch}
                         </Text>
-                        {/* <Text style={styles.resultSecondaryText}>
-                          {item.display_name}
-                        </Text> */}
                       </View>
                     </TouchableOpacity>
                   );
                 })
-              ) : searchQuery.length > 2 ? (
+              ) : (
                 <View style={styles.noResultsContainer}>
                   <Text style={styles.noResultsText}>No results found</Text>
                 </View>
-              ) : null}
+              )}
             </ScrollView>
           )}
+        </View>
+
+        <View style={styles.bottomInfoContainer}>
+          <Text style={styles.locationPrompt}>
+            Please hold your position the pin at your location
+          </Text>
         </View>
 
         <View style={styles.actionButtonsContainer}>
@@ -394,13 +438,13 @@ const saveAsFavorite = async () => {
             onPress={getCurrentLocation}>
             <Icon name="my-location" size={22} color="#fff" />
           </TouchableOpacity>
-
+{/* 
           <TouchableOpacity
             style={[styles.actionButton, styles.confirmPinButton]}
             onPress={confirmCenterLocation}>
             <Icon name="place" size={22} color="#fff" />
-            <Text style={styles.confirmPinText}>Confirm Pin Location</Text>
-          </TouchableOpacity>
+            <Text style={styles.confirmPinText}>Confirm Location</Text>
+          </TouchableOpacity> */}
         </View>
       </View>
 
@@ -409,6 +453,12 @@ const saveAsFavorite = async () => {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View style={styles.dragHandle} />
+              {/* Close Button */}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setModalVisible(false)}>
+                <Icon name="close" size={24} color="#4756ca" />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.addressContainer}>
@@ -418,8 +468,7 @@ const saveAsFavorite = async () => {
               <View style={styles.addressTextContainer}>
                 <Text style={styles.addressLabel}>Selected Location</Text>
                 <Text style={styles.addressMain}>
-                  {selectedLocation?.formattedAddress ||
-                    selectedLocation?.fullAddress}
+                  {selectedLocation?.formattedAddress || selectedLocation?.fullAddress}
                 </Text>
                 <Text style={styles.addressSecondary}>
                   {selectedLocation?.fullAddress}
@@ -437,19 +486,14 @@ const saveAsFavorite = async () => {
                 style={styles.confirmButton}
                 onPress={() => {
                   setModalVisible(false);
-                  navigation.navigate(
-                    'BranchLocationConfirmation',
-                    selectedLocation,
-                  );
+                  navigation.navigate('BranchLocationConfirmation', selectedLocation);
                 }}>
                 <Text style={styles.confirmButtonText}>Confirm Location</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.additionalOptions}>
-              <TouchableOpacity
-                style={styles.optionItem}
-                onPress={saveAsFavorite}>
+              <TouchableOpacity style={styles.optionItem} onPress={saveAsFavorite}>
                 <Icon name="star" size={20} color="#616dc7" />
                 <Text style={styles.optionText}>Save as favorite</Text>
               </TouchableOpacity>
@@ -476,6 +520,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 2000,
   },
   content: {
     flex: 1,
@@ -526,6 +571,19 @@ const styles = StyleSheet.create({
     color: '#333',
     padding: 0,
   },
+  searchingIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: 'white',
+    marginHorizontal: 12,
+    borderRadius: 8,
+  },
+  searchingText: {
+    marginLeft: 10,
+    color: '#666',
+  },
   searchResults: {
     backgroundColor: 'white',
     marginHorizontal: 12,
@@ -553,11 +611,6 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
-  resultSecondaryText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
   noResultsContainer: {
     padding: 20,
     alignItems: 'center',
@@ -565,6 +618,24 @@ const styles = StyleSheet.create({
   noResultsText: {
     color: '#666',
     fontSize: 14,
+  },
+  // Bottom info prompt
+  bottomInfoContainer: {
+    position: 'absolute',
+    bottom: 80,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  locationPrompt: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    color: 'white',
+    padding: 10,
+    borderRadius: 20,
+    fontSize: 14,
+    textAlign: 'center',
   },
   // Action buttons
   actionButtonsContainer: {
@@ -697,6 +768,13 @@ const styles = StyleSheet.create({
   highlight: {
     fontWeight: 'bold',
     color: '#4756ca',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    padding: 5,
+    zIndex: 10,
   },
 });
 

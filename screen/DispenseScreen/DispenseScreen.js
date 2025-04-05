@@ -15,6 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import Toast from 'react-native-toast-message';
 
 // Sample medicine data - Replace with your actual data
 const medicineInventory = [
@@ -47,10 +48,27 @@ const DispenseScreen = ({navigation}) => {
     }
     return true; // iOS handles permissions differently
   };
+
+  const showToast = () => {
+    Toast.show({
+      type: 'error',
+      text1: 'Permission Denied You need to grant camera permission',
+
+    });
+  }
+
+  const ErrorToast = () => {
+    Toast.show({
+      type: 'error',
+      text1: 'Cancelled User cancelled camera',
+
+    });
+  }
+
   const handleTakePhoto = async () => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
-      Alert.alert('Permission Denied', 'You need to grant camera permission.');
+      showToast
       return;
     }
   
@@ -64,7 +82,7 @@ const DispenseScreen = ({navigation}) => {
       const result = await launchCamera(options);
   
       if (result.didCancel) {
-        Alert.alert('Cancelled', 'User cancelled camera');
+        ErrorToast
       } else if (result.errorMessage) {
         Alert.alert('Error', result.errorMessage);
       } else if (result.assets && result.assets.length > 0) {

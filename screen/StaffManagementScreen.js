@@ -62,10 +62,10 @@ const StaffManagementScreen = () => {
       member.email.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (activeFilter === 'all') return matchesSearch;
-    if (activeFilter === 'active')
-      return matchesSearch && member.status === 'active';
-    if (activeFilter === 'inactive')
-      return matchesSearch && member.status === 'inactive';
+    if (activeFilter === 'Active')
+      return matchesSearch && member.status === 'Active';
+    if (activeFilter === 'Inactive')
+      return matchesSearch && member.status === 'Inactive';
     return (
       matchesSearch && member.role.toLowerCase() === activeFilter.toLowerCase()
     );
@@ -197,7 +197,7 @@ const StaffManagementScreen = () => {
         <View
           style={[
             styles.statusBadge,
-            {backgroundColor: item.status === 'active' ? '#51cf66' : '#ff6b6b'},
+            {backgroundColor: item.status === 'active' ? '#4756ca' : '#4756ca'},
           ]}>
           <Text style={styles.statusText}>{item.status}</Text>
         </View>
@@ -215,7 +215,7 @@ const StaffManagementScreen = () => {
         <TouchableOpacity
           style={[
             styles.actionButton,
-            {backgroundColor: item.status === 'active' ? '#ff6b6b' : '#51cf66'},
+            {backgroundColor: item.status === 'active' ? '#4756ca' : '#4756ca'},
           ]}
           onPress={() => handleStatusChange(item.id)}>
           <Text style={styles.actionButtonText}>
@@ -234,13 +234,13 @@ const StaffManagementScreen = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionButton, {backgroundColor: '#ffd43b'}]}
+          style={[styles.actionButton, {backgroundColor: '#4756ca'}]}
           onPress={() => handleRoleManagement(item)}>
           <Text style={styles.actionButtonText}>Manage Role</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionButton, {backgroundColor: '#2196F3'}]}
+          style={[styles.actionButton, {backgroundColor: '#4756ca'}]}
           onPress={() => handleViewActivity(item.id)}>
           <Text style={styles.actionButtonText}>View Activity</Text>
         </TouchableOpacity>
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   addButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#4756ca',
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 20,
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
   },
 
   editButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#4756ca',
   },
 
   modalContainer: {

@@ -13,7 +13,7 @@ import LoginScreen from './Auth/LoginScreen';
 import DashboardScreen from './screen/HomeScreen/HomeScreen';
 import InventoryScreen from './screen/InventoryScreen/InventoryScreen';
 import PrescriptionScreen from './screen/PrescriptionScreen';
-import DispenseScreen from './screen/DispenseScreen';
+import DispenseScreen from './screen/DispenseScreen/DispenseScreen';
 import ProfileScreen from './screen/ProfileScreens';
 import StaffManagementScreen from './screen/StaffManagementScreen';
 import SplashScreen from './Auth/SplashScreen';
@@ -141,53 +141,55 @@ const DrawerNavigator = () => (
     <Drawer.Screen name="Dispense" component={DispenseScreen} options={{ title: 'Dispense' }} />
     <Drawer.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
     <Drawer.Screen name="StaffManagement" component={StaffManagementScreen} options={{ title: 'Staff Management' }} />
-    <Drawer.Screen name="Switch Pharmacy & Branch" component={PharmacyView}/>
+    <Drawer.Screen name="Switch Pharmacy & Branch" component={PharmacyView} />
   </Drawer.Navigator>
 );
 
 const AuthNavigator = () => (
-  <Stack.Navigator initialRouteName="MainApp" screenOptions={{ headerShown: true }}>
+  <Stack.Navigator initialRouteName="PharmacyView" screenOptions={{ headerShown: true }}>
+    <Stack.Screen name="Inventory" component={InventoryScreen} options={{ headerShown: true, title: 'Inventory' }} />
     <Stack.Screen name="SplashScreen" component={SplashScreen} />
     <Stack.Screen name="MainApp" component={DrawerNavigator} options={{ headerShown: false }} />
     <Stack.Screen name="FullGraph" component={FullGraphScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="BranchScreen" component={BranchScreen} options={{headerShown:false}} />
+
     <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login' }} />
-    <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ headerShown:false }} />
-    <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{ title: 'Forgot Password' ,headerTitle:'',}} />
+    <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{ title: 'Forgot Password', headerTitle: '', }} />
     <Stack.Screen name="VerifyOtp" component={VerifyOtp} options={{ title: 'Verify OTP' }} />
-    <Stack.Screen name="BranchFormStore" component={BranchFormStore} options={{ title: 'Add New Store',headerShown: true }} />
-    <Stack.Screen name="SearchScreen" component={SearchScreen} options={{ headerShown: true, headerTitleStyle: { fontSize: 15 } }} />
+    <Stack.Screen name="BranchFormStore" component={BranchFormStore} options={{ title: 'Add New Store', headerShown: true }} />
+    <Stack.Screen name="Inventory Search" component={SearchScreen} options={{ headerShown: true, headerTitleStyle: { fontSize: 15 } }} />
     <Stack.Screen name="AddProduct" component={AddProduct} options={{ headerTitleStyle: { fontSize: 15 } }} />
-    <Stack.Screen name="LocationSearch" component={LocationSearch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
-    <Stack.Screen name="PharmacyDetails" component={PharmacyDetails} options={{ headerTitleStyle: { fontSize: 15 } ,headerShown: false}} />
-    <Stack.Screen name="PharmacyView" component={PharmacyView} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
-    <Stack.Screen name="LocationConfirmation" component={LocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: true }} />
-    <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 }, headerTitle:'',headerShown: false }} />
-    <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false}} />
-    <Stack.Screen name="AddComposition" component={AddComposition} options={{ headerTitleStyle: { fontSize: 15 }, title:"Composition",headerShown: true }} />
+    <Stack.Screen name="LocationSearch" component={LocationSearch} options={{ headerTitleStyle: { fontSize: 15 }, headerShown: false }} />
+    <Stack.Screen name="PharmacyDetails" component={PharmacyDetails} options={{ headerTitleStyle: { fontSize: 15 }, headerShown: false }} />
+    <Stack.Screen name="PharmacyView" component={PharmacyView} options={{ headerTitleStyle: { fontSize: 15 }, headerShown: true, title: "Pharmacy" }} />
+    <Stack.Screen name="LocationConfirmation" component={LocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 }, headerShown: true }} />
+    <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 }, headerTitle: '', headerShown: false }} />
+    <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 }, headerShown: false }} />
+    <Stack.Screen name="AddComposition" component={AddComposition} options={{ headerTitleStyle: { fontSize: 15 }, title: "Composition", headerShown: true }} />
     <Stack.Screen name="PatientInfoSearch" component={PatientInfoSearch} options={{ headerShown: false }} />
     <Stack.Screen name="ParientForm" component={ParientForm} options={{ headerShown: false }} />
+    <Stack.Screen name="BranchScreen" component={BranchScreen} options={{ headerShown: true }} />
   </Stack.Navigator>
 );
 
 const HomeNavigator = () => (
-  <Stack.Navigator initialRouteName="MainApp">
+  <Stack.Navigator initialRouteName="PharmacyView">
     <Stack.Screen name="MainApp" component={DrawerNavigator} options={{ headerShown: false }} />
     <Stack.Screen name="Inventory" component={InventoryScreen} options={{ headerShown: true, title: 'Inventory' }} />
     <Stack.Screen name="SearchScreen" component={SearchScreen} options={{ headerShown: true, headerTitleStyle: { fontSize: 15 } }} />
     <Stack.Screen name="AddProduct" component={AddProduct} options={{ headerShown: false, headerTitleStyle: { fontSize: 15 } }} />
-    <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ headerShown:false }} />
+    <Stack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ headerShown: false }} />
     <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{ title: 'Forgot Password' }} />
-    <Stack.Screen name="BranchScreen" component={BranchScreen} options={{headerShown:false}} />
-    <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login',headerShown: false }} />
-    <Stack.Screen name="BranchFormStore" component={BranchFormStore} options={{ title: 'Add New Store' ,headerShown:false}} />
-    <Stack.Screen name="PharmacyDetails" component={PharmacyDetails} options={{ headerTitleStyle: { fontSize: 15 } ,headerShown: false}} />
-    <Stack.Screen name="PharmacyView" component={PharmacyView} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
-    <Stack.Screen name="LocationSearch" component={LocationSearch} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
-    <Stack.Screen name="LocationConfirmation" component={LocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 },headerShown: false }} />
-    <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 }, headerTitle:'',headerShown: false }} />
-    <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 },headerTitle:'',headerShown:   false}} />
-    <Stack.Screen name="AddComposition" component={AddComposition} options={{ headerTitleStyle: { fontSize: 15 }, title:"Composition",headerShown: true }} />
+    <Stack.Screen name="BranchScreen" component={BranchScreen} options={{ headerShown: true }} />
+    <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login', headerShown: false }} />
+    <Stack.Screen name="BranchFormStore" component={BranchFormStore} options={{ title: 'Add New Store', headerShown: true }} />
+    <Stack.Screen name="PharmacyDetails" component={PharmacyDetails} options={{ headerTitleStyle: { fontSize: 15 }, headerShown: false }} />
+    <Stack.Screen name="PharmacyView" component={PharmacyView} options={{ headerTitleStyle: { fontSize: 15 }, headerShown: false }} />
+    <Stack.Screen name="LocationSearch" component={LocationSearch} options={{ headerTitleStyle: { fontSize: 15 }, headerShown: false }} />
+    <Stack.Screen name="LocationConfirmation" component={LocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 }, headerShown: false }} />
+    <Stack.Screen name="BranchLocationConfirmation" component={BranchLocationConfirmation} options={{ headerTitleStyle: { fontSize: 15 }, headerTitle: '', headerShown: false }} />
+    <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 }, headerTitle: '', headerShown: false }} />
+    <Stack.Screen name="AddComposition" component={AddComposition} options={{ headerTitleStyle: { fontSize: 15 }, title: "Composition", headerShown: true }} />
     <Stack.Screen name="FullGraph" component={FullGraphScreen} options={{ headerShown: false }} />
     <Stack.Screen name="PatientInfoSearch" component={PatientInfoSearch} options={{ headerShown: false }} />
   </Stack.Navigator>
@@ -232,18 +234,18 @@ const App = () => {
   }
 
   return (
-  
+
     <LocationProvider>
-       <PaperProvider>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          {isLogin ? <HomeNavigator /> : <AuthNavigator />}
-        </NavigationContainer>
-      </SafeAreaProvider>
-    </PaperProvider>
+      <PaperProvider>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            {isLogin ? <HomeNavigator /> : <AuthNavigator />}
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </PaperProvider>
 
     </LocationProvider>
-   
+
   );
 };
 

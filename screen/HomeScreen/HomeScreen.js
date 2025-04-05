@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { BarChart, LineChart } from 'react-native-gifted-charts';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const DashboardScreen = ({ navigation }) => {
   const barData = [
@@ -48,24 +49,30 @@ const DashboardScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.chartContainer}
-          onPress={() =>
-            navigation.navigate('FullGraph', {
-              type: 'bar',
-              chartProps: {
-                barWidth: 22,
-                noOfSections: 3,
-                barBorderRadius: 4,
-                frontColor: 'lightgray',
-                data: barData,
-                yAxisThickness: 0,
-                xAxisThickness: 0,
-              },
-            })
-          }
-        >
-          <Text style={styles.chartTitle}>Stock Levels</Text>
+        {/* Bar Chart */}
+        <View style={styles.chartContainer}>
+          <View style={styles.chartHeader}>
+            <Text style={styles.chartTitle}>Stock Levels</Text>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('FullGraph', {
+                  type: 'bar',
+                  chartProps: {
+                    barWidth: 22,
+                    noOfSections: 3,
+                    barBorderRadius: 4,
+                    frontColor: 'lightgray',
+                    data: barData,
+                    yAxisThickness: 0,
+                    xAxisThickness: 0,
+                  },
+                })
+              }
+            >
+              <Icon name="arrow-expand" size={24} color="#3f4fb8" />
+            </TouchableOpacity>
+          </View>
+
           <BarChart
             barWidth={22}
             noOfSections={3}
@@ -75,27 +82,33 @@ const DashboardScreen = ({ navigation }) => {
             yAxisThickness={0}
             xAxisThickness={0}
           />
-        </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity
-          style={styles.chartContainer}
-          onPress={() =>
-            navigation.navigate('FullGraph', {
-              type: 'line',
-              chartProps: {
-                data: lineData,
-                thickness: 3,
-                color: '#3f4fb8',
-                hideDataPoints: true,
-                startFillColor: '#b6c1ee',
-                startOpacity: 0.3,
-                endOpacity: 0.1,
-                spacing: 40,
-              },
-            })
-          }
-        >
-          <Text style={styles.chartTitle}>Orders Trend</Text>
+        {/* Line Chart */}
+        <View style={styles.chartContainer}>
+          <View style={styles.chartHeader}>
+            <Text style={styles.chartTitle}>Orders Trend</Text>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('FullGraph', {
+                  type: 'line',
+                  chartProps: {
+                    data: lineData,
+                    thickness: 3,
+                    color: '#3f4fb8',
+                    hideDataPoints: true,
+                    startFillColor: '#b6c1ee',
+                    startOpacity: 0.3,
+                    endOpacity: 0.1,
+                    spacing: 40,
+                  },
+                })
+              }
+            >
+              <Icon name="arrow-expand" size={24} color="#3f4fb8" />
+            </TouchableOpacity>
+          </View>
+
           <LineChart
             data={lineData}
             thickness={3}
@@ -106,7 +119,7 @@ const DashboardScreen = ({ navigation }) => {
             endOpacity={0.1}
             spacing={40}
           />
-        </TouchableOpacity>
+        </View>
       </ScrollView>
     </LinearGradient>
   );
@@ -154,12 +167,16 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   chartTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#3f4fb8',
-    marginBottom: 10,
-    textAlign: 'center',
   },
 });
 

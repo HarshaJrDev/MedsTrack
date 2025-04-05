@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -19,13 +19,13 @@ import {useNavigation} from '@react-navigation/native';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-const PatientInfoSearch = () => {
+const SearchScreen = () => {
   const [storeName, setStoreName] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
   const navigation = useNavigation();
 
-  const data = ['Ramesh', 'Varun', 'Krish', 'Ramana'];
+  const data = ['Dolo Tab 650mg', 'Paracetamol', 'Ibuprofen', 'Aspirin'];
 
   const customTheme = {
     ...DefaultTheme,
@@ -68,11 +68,12 @@ const PatientInfoSearch = () => {
       setRecentSearches(JSON.parse(savedSearches));
     }
   };
+
   const handleAddSearch = () => {
     Toast.show({
       type: 'info',
       text1: 'No Searches Found',
-      text2: 'Start by searching for an patient.',
+      text2: 'Start by searching for an item.',
     });
   };
 
@@ -120,11 +121,6 @@ const PatientInfoSearch = () => {
     fetchRecentSearches();
   }, []);
 
-  const handleNext = useCallback(()=>{
-    navigation.navigate('ParientForm')
-    
-  },[navigation])
-
   return (
     <View style={styles.Container}>
       <View style={{zIndex: 1, top: SCREEN_HEIGHT * 0.03}}>
@@ -133,8 +129,8 @@ const PatientInfoSearch = () => {
 
       <View style={styles.MainContainer}>
         <TextInput
-          placeholder="eg. Ramesh"
-          label="Patient"
+          placeholder="Eg. Dolo Tab 650mg"
+          label="Search Items"
           value={storeName}
           onChangeText={handleSearch}
           style={styles.input}
@@ -170,7 +166,7 @@ const PatientInfoSearch = () => {
               style={styles.addButton}
               onPress={() => handleSelectSuggestion(storeName)}>
               <Text style={styles.addButtonText}>
-                Unable to find an patient you looking for?
+                Unable to find an item you looking for?
               </Text>
             </TouchableOpacity>
             <LinearGradient
@@ -183,10 +179,10 @@ const PatientInfoSearch = () => {
               }}
               colors={['#4756ca', '#616dc7']}>
               <TouchableOpacity
-                onPress={handleNext}
+                onPress={() => navigation.navigate('AddProduct')}
                 style={{justifyContent: 'center', alignItems: 'center'}}>
                 <Text style={[styles.addButtonText, {color: '#fff'}]}>
-                  Add Patient
+                  Add Product
                 </Text>
               </TouchableOpacity>
             </LinearGradient>
@@ -237,7 +233,7 @@ const PatientInfoSearch = () => {
   );
 };
 
-export default PatientInfoSearch;
+export default SearchScreen;
 
 const styles = StyleSheet.create({
   Container: {
