@@ -301,12 +301,11 @@ const InventoryScreen = () => {
               />
 
               <>
-                <View style={{borderWidth: 0.8}}>
+                <View style={{borderWidth: 0.8 , borderRadius:4 ,height:58,bottom:1 }}>
                 <TextInput
   mode="flat"
   label="Expiry Date(MM-YYYY)"
   style={[
-    styles.input,
     { backgroundColor: "#fff" }
   ]}
   textColor="#000"
@@ -314,8 +313,8 @@ const InventoryScreen = () => {
   editable={false}
   theme={{
     colors: {
-      primary: '#000', // Focused label color
-      onSurfaceVariant: '#000' // Unfocused label color (use this for latest versions)
+      primary: '#000',
+      onSurfaceVariant: '#000' 
     }
   }}
   right={

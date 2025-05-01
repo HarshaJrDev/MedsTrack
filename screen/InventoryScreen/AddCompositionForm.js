@@ -331,7 +331,7 @@ const AddComposition = () => {
                 value={newItem.StrengthValue}
                 onChangeText={text =>
                   setNewItem({...newItem, StrengthValue: text})
-                } // ✅ FIXED
+                } 
                 keyboardType="numeric"
               />
 

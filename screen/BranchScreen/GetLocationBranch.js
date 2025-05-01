@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Alert,
 } from 'react-native';
 import {WebView} from 'react-native-webview';
 import {useNavigation} from '@react-navigation/native';
@@ -22,6 +23,8 @@ const GetLocationBranch = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [labelName, setLabelName] = useState('');
   const webViewRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
@@ -278,50 +281,75 @@ const GetLocationBranch = () => {
     webViewRef.current.injectJavaScript(`selectCenterLocation(); true;`);
   };
 
-  const saveAsFavorite = async () => {
+
+  const checkIfFavorite = async (lat, lon) => {
     try {
-      if (!selectedLocation) {
-        alert('No location selected!');
-        return;
-      }
-
       const existingFavorites = await AsyncStorage.getItem('favoriteLocations');
-      let favorites = [];
-
+      
       if (existingFavorites) {
-        try {
-          const parsed = JSON.parse(existingFavorites);
-          favorites = Array.isArray(parsed) ? parsed : [];
-        } catch (e) {
-          favorites = [];
+        const favorites = JSON.parse(existingFavorites);
+        
+        // Check if there's a favorite with matching coordinates
+        const foundFavorite = favorites.find(
+          fav => 
+            Math.abs(fav.lat - lat) < 0.0001 && 
+            Math.abs(fav.lon - lon) < 0.0001
+        );
+        
+        if (foundFavorite) {
+          setIsFavorite(true);
+          setLabelName(foundFavorite.labelName || '');
+          return true;
         }
       }
-
-      // Check for duplicates based on lat/lon
-      const isDuplicate = favorites.some(
-        fav =>
-          fav.lat === selectedLocation.lat &&
-          fav.lon === selectedLocation.lon
-      );
-
-      if (isDuplicate) {
-        alert('This location is already in favorites.');
-        return;
-      }
-
-      favorites.push(selectedLocation);
-
-      await AsyncStorage.setItem(
-        'favoriteLocations',
-        JSON.stringify(favorites)
-      );
-
-      alert('Location saved to favorites!');
+      
+      setIsFavorite(false);
+      setLabelName('');
+      return false;
     } catch (error) {
-      console.error('Error saving favorite location:', error);
-      alert('Failed to save location as favorite.');
+      console.error('Error checking favorites:', error);
+      return false;
     }
   };
+  const toggleFavorite = async () => {
+    if (!selectedLocation) return;
+    
+    try {
+      const existingFavorites = await AsyncStorage.getItem('favoriteLocations');
+      let favorites = existingFavorites ? JSON.parse(existingFavorites) : [];
+      
+      if (isFavorite) {
+        // Remove from favorites
+        favorites = favorites.filter(
+          fav => 
+            Math.abs(fav.lat - selectedLocation.lat) >= 0.0001 || 
+            Math.abs(fav.lon - selectedLocation.lon) >= 0.0001
+        );
+        setIsFavorite(false);
+        setLabelName('');
+      } else {
+        // Add to favorites
+        favorites.push({
+          lat: selectedLocation.lat,
+          lon: selectedLocation.lon,
+          fullAddress: selectedLocation.fullAddress,
+          formattedAddress: selectedLocation.formattedAddress,
+          labelName: labelName || 'Favorite Location',
+          timestamp: new Date().toISOString(),
+        });
+        setIsFavorite(true);
+      }
+      
+      await AsyncStorage.setItem('favoriteLocations', JSON.stringify(favorites));
+      Alert.alert(
+        isFavorite ? 'Removed from Favorites' : 'Added to Favorites', 
+        isFavorite ? 'This location has been removed from your favorites.' : 'This location has been added to your favorites.'
+      );
+    } catch (error) {
+      console.error('Error toggling favorite status:', error);
+      Alert.alert('Error', 'Could not update favorites. Please try again.');
+    }
+  };  
   
   return (
     <View style={styles.container}>
@@ -428,7 +456,7 @@ const GetLocationBranch = () => {
 
         <View style={styles.bottomInfoContainer}>
           <Text style={styles.locationPrompt}>
-            Please hold your position the pin at your location
+         Please place the pin at your required location
           </Text>
         </View>
 
@@ -447,7 +475,6 @@ const GetLocationBranch = () => {
           </TouchableOpacity> */}
         </View>
       </View>
-
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -476,6 +503,16 @@ const GetLocationBranch = () => {
               </View>
             </View>
 
+            {/* Favorite label input */}
+            <View style={styles.favoriteInputContainer}>
+              <TextInput
+                style={styles.labelInput}
+                placeholder="Label this location (optional)"
+                value={labelName}
+                onChangeText={setLabelName}
+              />
+            </View>
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.editButton}
@@ -492,20 +529,39 @@ const GetLocationBranch = () => {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.additionalOptions}>
-              <TouchableOpacity style={styles.optionItem} onPress={saveAsFavorite}>
-                <Icon name="star" size={20} color="#616dc7" />
-                <Text style={styles.optionText}>Save as favorite</Text>
+            <View style={[styles.additionalOptions,{alignItems:"center",flexDirection:"row"}]}>
+              <TouchableOpacity 
+                style={styles.optionItem} 
+                onPress={toggleFavorite}>
+                <Icon 
+                  name={isFavorite ? "favorite" : "favorite-outline"} 
+                  size={20} 
+                  color="#616dc7" 
+                />
+                <Text style={styles.optionText}>
+                  {isFavorite ? "Remove from favorites" : "Save as favorite"}
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.optionItem}>
-                <Icon name="share" size={20} color="#616dc7" />
-                <Text style={styles.optionText}>Share this location</Text>
-              </TouchableOpacity>
+              <TouchableOpacity 
+  onPress={() => navigation.navigate('FavoriteLocationsScreen')} 
+  style={{ flexDirection: "row", alignItems: "center", padding: 10 }}
+>
+  <Icon 
+    name="edit"  // or "edit-2", "create", etc. depending on your icon set
+    size={20} 
+    color="#616dc7" 
+    style={{ marginRight: 5 }} 
+  />
+</TouchableOpacity>
             </View>
           </View>
-        </View>
+          </View>
+  
       </Modal>
+
+
+      
     </View>
   );
 };
@@ -754,6 +810,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
     paddingTop: 15,
+    flexDirection:"row",
+    columnGap:190
+
   },
   optionItem: {
     flexDirection: 'row',

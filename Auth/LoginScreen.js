@@ -59,7 +59,7 @@ const LoginScreen = () => {
   const inputRefs = useRef([]);
 
   const validateUsername = text => {
-    // Regular expression for validation
+
     const usernameRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 

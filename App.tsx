@@ -36,6 +36,8 @@ import AddComposition from './screen/InventoryScreen/AddCompositionForm';
 import FullGraphScreen from './screen/HomeScreen/FullGraphScreen';
 import PatientInfoSearch from './screen/PatientInfoSearch/PatientInfoSearch';
 import ParientForm from './screen/PatientInfoSearch/ParientForm';
+import EditFavoriteLocationScreen from './screen/BranchScreen/EditFavoriteLocationScreen';
+import FavoriteLocationsScreen from './screen/BranchScreen/FavoriteLocationsScreen';
 
 const rnBiometrics = new ReactNativeBiometrics();
 
@@ -167,8 +169,10 @@ const AuthNavigator = () => (
     <Stack.Screen name="GetLocationBranch" component={GetLocationBranch} options={{ headerTitleStyle: { fontSize: 15 }, headerShown: false }} />
     <Stack.Screen name="AddComposition" component={AddComposition} options={{ headerTitleStyle: { fontSize: 15 }, title: "Composition", headerShown: true }} />
     <Stack.Screen name="PatientInfoSearch" component={PatientInfoSearch} options={{ headerShown: false }} />
-    <Stack.Screen name="ParientForm" component={ParientForm} options={{ headerShown: false }} />
+    <Stack.Screen name="ParientForm" component={ParientForm} options={{ headerShown: true }} />
     <Stack.Screen name="BranchScreen" component={BranchScreen} options={{ headerShown: true }} />
+    <Stack.Screen name="EditFavoriteLocationScreen" component={EditFavoriteLocationScreen} options={{ headerShown: true }} />
+    <Stack.Screen name="FavoriteLocationsScreen" component={FavoriteLocationsScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 );
 
@@ -192,6 +196,7 @@ const HomeNavigator = () => (
     <Stack.Screen name="AddComposition" component={AddComposition} options={{ headerTitleStyle: { fontSize: 15 }, title: "Composition", headerShown: true }} />
     <Stack.Screen name="FullGraph" component={FullGraphScreen} options={{ headerShown: false }} />
     <Stack.Screen name="PatientInfoSearch" component={PatientInfoSearch} options={{ headerShown: false }} />
+    <Stack.Screen name="EditFavoriteLocationScreen" component={EditFavoriteLocationScreen} options={{ headerShown: true }} />
   </Stack.Navigator>
 );
 
