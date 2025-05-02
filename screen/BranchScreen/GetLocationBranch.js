@@ -487,7 +487,6 @@ const GetLocationBranch = () => {
                 <Icon name="close" size={24} color="#4756ca" />
               </TouchableOpacity>
             </View>
-
             <View style={styles.addressContainer}>
               <View style={styles.addressIconContainer}>
                 <Icon name="place" size={24} color="#4756ca" />
